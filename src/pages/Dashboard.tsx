@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createStoreDialogOpen, setCreateStoreDialogOpen] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -245,6 +246,42 @@ const Dashboard = () => {
     }
   };
 
+  const createStore = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const address = formData.get('address') as string;
+    const phone = formData.get('phone') as string;
+    const description = formData.get('description') as string;
+    const latitude = parseFloat(formData.get('latitude') as string);
+    const longitude = parseFloat(formData.get('longitude') as string);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('create-owner-store', {
+        body: { name, address, phone, description, latitude, longitude },
+      });
+
+      if (error) throw error;
+
+      toast({ title: 'Store created successfully!' });
+      setCreateStoreDialogOpen(false);
+      (e.target as HTMLFormElement).reset();
+      
+      // Refresh data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) fetchStoreData(user.id);
+    } catch (error: any) {
+      toast({
+        title: 'Error creating store',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -266,10 +303,68 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-8">
           <Card className="p-12 text-center">
             <Store className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mb-2">No Store Assigned</h2>
-            <p className="text-muted-foreground">
-              You don't have a store assigned yet. Please contact an administrator.
+            <h2 className="text-2xl font-bold mb-2">No Store Yet</h2>
+            <p className="text-muted-foreground mb-6">
+              Create your store to start managing products and reviews.
             </p>
+            <Dialog open={createStoreDialogOpen} onOpenChange={setCreateStoreDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create My Store
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create Your Store</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={createStore} className="space-y-4">
+                  <div>
+                    <Label htmlFor="create-name">Store Name</Label>
+                    <Input id="create-name" name="name" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="create-address">Address</Label>
+                    <Input id="create-address" name="address" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="create-phone">Phone</Label>
+                    <Input id="create-phone" name="phone" type="tel" required />
+                  </div>
+                  <div>
+                    <Label htmlFor="create-description">Description</Label>
+                    <Textarea id="create-description" name="description" rows={3} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="create-latitude">Latitude</Label>
+                      <Input 
+                        id="create-latitude" 
+                        name="latitude" 
+                        type="number" 
+                        step="any"
+                        placeholder="41.2995" 
+                        required 
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="create-longitude">Longitude</Label>
+                      <Input 
+                        id="create-longitude" 
+                        name="longitude" 
+                        type="number" 
+                        step="any"
+                        placeholder="69.2401" 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Create Store
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </Card>
         </div>
       </div>

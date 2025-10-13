@@ -64,6 +64,8 @@ const AddStore = () => {
     latitude: '',
     longitude: '',
     photo_url: '',
+    open_time: '',
+    close_time: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +82,8 @@ const AddStore = () => {
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude),
           photo_url: formData.photo_url || null,
+          open_time: formData.open_time || null,
+          close_time: formData.close_time || null,
         },
       ]);
 
@@ -207,6 +211,27 @@ const AddStore = () => {
                 onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
                 placeholder="https://example.com/photo.jpg"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="open_time">Opening Time</Label>
+                <Input
+                  id="open_time"
+                  type="time"
+                  value={formData.open_time}
+                  onChange={(e) => setFormData({ ...formData, open_time: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="close_time">Closing Time</Label>
+                <Input
+                  id="close_time"
+                  type="time"
+                  value={formData.close_time}
+                  onChange={(e) => setFormData({ ...formData, close_time: e.target.value })}
+                />
+              </div>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

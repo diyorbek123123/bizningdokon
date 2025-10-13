@@ -5,7 +5,7 @@ import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, MapPin, Phone, Search } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +16,10 @@ interface Store {
   phone: string;
   address: string;
   photo_url: string | null;
+  latitude: number;
+  longitude: number;
+  open_time: string | null;
+  close_time: string | null;
 }
 
 interface Product {
@@ -143,7 +147,7 @@ const StoreDetail = () => {
               <p className="text-muted-foreground text-lg">{store.description}</p>
             )}
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Phone className="h-5 w-5 text-primary" />
                 <span className="font-medium">{store.phone}</span>
@@ -152,6 +156,24 @@ const StoreDetail = () => {
                 <MapPin className="h-5 w-5 text-primary" />
                 <span className="font-medium">{store.address}</span>
               </div>
+              {store.open_time && store.close_time && (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <span className="font-medium">
+                    {store.open_time.substring(0, 5)} - {store.close_time.substring(0, 5)}
+                  </span>
+                </div>
+              )}
+              <Button 
+                className="mt-4"
+                onClick={() => {
+                  const url = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                <NavigationIcon className="mr-2 h-4 w-4" />
+                Get Directions
+              </Button>
             </div>
           </div>
         </Card>

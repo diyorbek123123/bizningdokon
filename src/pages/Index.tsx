@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { StoreCard } from '@/components/StoreCard';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ interface Store {
 const Index = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stores, setStores] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,15 @@ const Index = () => {
 
           {/* Search Bar */}
           <div className="w-full max-w-xl">
-            <div className="relative">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) {
+                  navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                }
+              }}
+              className="relative"
+            >
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
@@ -92,7 +102,7 @@ const Index = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 text-lg bg-background/95 backdrop-blur"
               />
-            </div>
+            </form>
           </div>
         </div>
       </section>

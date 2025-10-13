@@ -55,36 +55,42 @@ export type Database = {
       stores: {
         Row: {
           address: string
+          close_time: string | null
           created_at: string
           description: string | null
           id: string
           latitude: number
           longitude: number
           name: string
+          open_time: string | null
           phone: string
           photo_url: string | null
           updated_at: string
         }
         Insert: {
           address: string
+          close_time?: string | null
           created_at?: string
           description?: string | null
           id?: string
           latitude: number
           longitude: number
           name: string
+          open_time?: string | null
           phone: string
           photo_url?: string | null
           updated_at?: string
         }
         Update: {
           address?: string
+          close_time?: string | null
           created_at?: string
           description?: string | null
           id?: string
           latitude?: number
           longitude?: number
           name?: string
+          open_time?: string | null
           phone?: string
           photo_url?: string | null
           updated_at?: string

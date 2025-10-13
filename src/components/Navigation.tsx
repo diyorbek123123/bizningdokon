@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from './LanguageSelector';
-import { Store, MapPin, Plus, LogIn, LogOut } from 'lucide-react';
+import { Store, MapPin, Plus, LogIn, LogOut, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
@@ -92,6 +92,17 @@ export const Navigation = () => {
               <Link to="/map" className="gap-2">
                 <MapPin className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('nav.map')}</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant={isActive('/search') ? 'default' : 'ghost'}
+              size="sm"
+            >
+              <Link to="/search" className="gap-2">
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
               </Link>
             </Button>
 

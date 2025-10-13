@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Plus, Save, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Save, AlertCircle, MapPin } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +52,9 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'store' | 'product'; id: string } | null>(null);
+  const adminMapRef = useRef<HTMLDivElement>(null);
+  const adminMapInstanceRef = useRef<L.Map | null>(null);
+  const adminMarkerRef = useRef<L.Marker | null>(null);
   
   // New product form
   const [newProduct, setNewProduct] = useState({ name: '', description: '', price: 0 });
@@ -62,12 +67,70 @@ const Admin = () => {
   useEffect(() => {
     if (!selectedStoreId) {
       setSelectedStore(null);
+      if (adminMapInstanceRef.current) {
+        adminMapInstanceRef.current.remove();
+        adminMapInstanceRef.current = null;
+        adminMarkerRef.current = null;
+      }
       return;
     }
     const store = stores.find(s => s.id === selectedStoreId);
     setSelectedStore(store || null);
     loadProducts(selectedStoreId);
+    
+    // Initialize map for this store
+    if (store) {
+      setTimeout(() => initializeAdminMap(store.latitude, store.longitude), 100);
+    }
   }, [selectedStoreId, stores]);
+
+  const initializeAdminMap = (lat: number, lng: number) => {
+    if (!adminMapRef.current) return;
+    
+    // Clean up existing map
+    if (adminMapInstanceRef.current) {
+      adminMapInstanceRef.current.remove();
+    }
+
+    // Create new map
+    const map = L.map(adminMapRef.current).setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+    }).addTo(map);
+
+    // Add marker
+    const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    adminMarkerRef.current = marker;
+
+    // Update coordinates when marker is dragged
+    marker.on('dragend', () => {
+      const position = marker.getLatLng();
+      if (selectedStore) {
+        setSelectedStore({
+          ...selectedStore,
+          latitude: position.lat,
+          longitude: position.lng,
+        });
+      }
+    });
+
+    // Update coordinates when map is clicked
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      marker.setLatLng(e.latlng);
+      if (selectedStore) {
+        setSelectedStore({
+          ...selectedStore,
+          latitude: e.latlng.lat,
+          longitude: e.latlng.lng,
+        });
+      }
+    });
+
+    adminMapInstanceRef.current = map;
+    
+    // Ensure proper sizing
+    setTimeout(() => map.invalidateSize(), 100);
+  };
 
   const loadStores = async () => {
     const { data, error } = await supabase.from('stores').select('*').order('created_at', { ascending: false });
@@ -276,28 +339,53 @@ const Admin = () => {
                     />
                   </div>
 
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      <MapPin className="inline h-4 w-4 mr-1" />
+                      Location on Map (Click or drag marker to set coordinates)
+                    </label>
+                    <div className="h-[300px] rounded-lg border overflow-hidden mb-2">
+                      <div ref={adminMapRef} className="w-full h-full" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Current: {selectedStore.latitude.toFixed(6)}°N, {selectedStore.longitude.toFixed(6)}°E
+                    </p>
+                  </div>
+
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="text-sm font-medium">Latitude</label>
+                      <label className="text-sm font-medium">Latitude (or use map above)</label>
                       <Input
                         type="number"
                         step="0.000001"
                         value={selectedStore.latitude}
-                        onChange={(e) => setSelectedStore({ ...selectedStore, latitude: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          const newLat = parseFloat(e.target.value) || 0;
+                          setSelectedStore({ ...selectedStore, latitude: newLat });
+                          if (adminMarkerRef.current) {
+                            adminMarkerRef.current.setLatLng([newLat, selectedStore.longitude]);
+                            adminMapInstanceRef.current?.setView([newLat, selectedStore.longitude]);
+                          }
+                        }}
                         placeholder="41.3775"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Uzbekistan: ~41° N</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Longitude</label>
+                      <label className="text-sm font-medium">Longitude (or use map above)</label>
                       <Input
                         type="number"
                         step="0.000001"
                         value={selectedStore.longitude}
-                        onChange={(e) => setSelectedStore({ ...selectedStore, longitude: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          const newLng = parseFloat(e.target.value) || 0;
+                          setSelectedStore({ ...selectedStore, longitude: newLng });
+                          if (adminMarkerRef.current) {
+                            adminMarkerRef.current.setLatLng([selectedStore.latitude, newLng]);
+                            adminMapInstanceRef.current?.setView([selectedStore.latitude, newLng]);
+                          }
+                        }}
                         placeholder="64.5853"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">Uzbekistan: ~64° E</p>
                     </div>
                   </div>
 

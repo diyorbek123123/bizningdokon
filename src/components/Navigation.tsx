@@ -72,14 +72,15 @@ export const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-4xl scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
             <Button
               asChild
               variant={isActive('/') ? 'default' : 'ghost'}
               size="sm"
+              className="h-8 px-2 text-xs whitespace-nowrap"
             >
-              <Link to="/" className="gap-2">
-                <Store className="h-4 w-4" />
+              <Link to="/" className="gap-1.5">
+                <Store className="h-3.5 w-3.5" />
                 {t('nav.home')}
               </Link>
             </Button>
@@ -88,9 +89,10 @@ export const Navigation = () => {
               asChild
               variant={isActive('/map') ? 'default' : 'ghost'}
               size="sm"
+              className="h-8 px-2 text-xs whitespace-nowrap"
             >
-              <Link to="/map" className="gap-2">
-                <MapPin className="h-4 w-4" />
+              <Link to="/map" className="gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
                 {t('nav.map')}
               </Link>
             </Button>
@@ -99,9 +101,10 @@ export const Navigation = () => {
               asChild
               variant={isActive('/search') ? 'default' : 'ghost'}
               size="sm"
+              className="h-8 px-2 text-xs whitespace-nowrap"
             >
-              <Link to="/search" className="gap-2">
-                <Search className="h-4 w-4" />
+              <Link to="/search" className="gap-1.5">
+                <Search className="h-3.5 w-3.5" />
                 Search
               </Link>
             </Button>
@@ -110,26 +113,27 @@ export const Navigation = () => {
               asChild
               variant={isActive('/about') ? 'default' : 'ghost'}
               size="sm"
+              className="h-8 px-2 text-xs whitespace-nowrap"
             >
-              <Link to="/about" className="gap-2">
-                <Info className="h-4 w-4" />
+              <Link to="/about" className="gap-1.5">
+                <Info className="h-3.5 w-3.5" />
                 About
               </Link>
             </Button>
 
             {user && (
-              <Button asChild variant={isActive('/favorites') ? 'default' : 'ghost'} size="sm">
-                <Link to="/favorites" className="gap-2">
-                  <Heart className="h-4 w-4" />
+              <Button asChild variant={isActive('/favorites') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
+                <Link to="/favorites" className="gap-1.5">
+                  <Heart className="h-3.5 w-3.5" />
                   Favorites
                 </Link>
               </Button>
             )}
 
             {userRole === 'store_owner' && (
-              <Button asChild variant={isActive('/dashboard') ? 'default' : 'ghost'} size="sm">
-                <Link to="/dashboard" className="gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
+              <Button asChild variant={isActive('/dashboard') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
+                <Link to="/dashboard" className="gap-1.5">
+                  <LayoutDashboard className="h-3.5 w-3.5" />
                   Dashboard
                 </Link>
               </Button>
@@ -137,23 +141,23 @@ export const Navigation = () => {
 
             {userRole === 'admin' && (
               <>
-                <Button asChild variant={isActive('/add-store') ? 'default' : 'ghost'} size="sm">
-                  <Link to="/add-store" className="gap-2">
-                    <Plus className="h-4 w-4" />
+                <Button asChild variant={isActive('/add-store') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
+                  <Link to="/add-store" className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" />
                     {t('nav.addStore')}
                   </Link>
                 </Button>
                 
-                <Button asChild variant={isActive('/admin') ? 'default' : 'ghost'} size="sm">
-                  <Link to="/admin" className="gap-2">
-                    <Edit className="h-4 w-4" />
+                <Button asChild variant={isActive('/admin') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
+                  <Link to="/admin" className="gap-1.5">
+                    <Edit className="h-3.5 w-3.5" />
                     Add Changes
                   </Link>
                 </Button>
                 
-                <Button asChild variant={isActive('/owner-admin') ? 'default' : 'ghost'} size="sm">
-                  <Link to="/owner-admin" className="gap-2">
-                    <UserCog className="h-4 w-4" />
+                <Button asChild variant={isActive('/owner-admin') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
+                  <Link to="/owner-admin" className="gap-1.5">
+                    <UserCog className="h-3.5 w-3.5" />
                     Owners
                   </Link>
                 </Button>
@@ -161,13 +165,13 @@ export const Navigation = () => {
             )}
 
             {user ? (
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="h-8 px-2 text-xs whitespace-nowrap">
+                <LogOut className="h-3.5 w-3.5 mr-1.5" />
                 Chiqish
               </Button>
             ) : (
-              <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Link to="/auth" className="gap-2">
+              <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 px-2 text-xs whitespace-nowrap">
+                <Link to="/auth" className="gap-1.5">
                   Kirish
                 </Link>
               </Button>

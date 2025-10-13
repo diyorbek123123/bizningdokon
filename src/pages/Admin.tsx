@@ -52,6 +52,14 @@ interface Owner {
   stores: Array<{ id: string; name: string }>;
 }
 
+interface AboutUs {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Admin = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -60,6 +68,8 @@ const Admin = () => {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
+  const [aboutUs, setAboutUs] = useState<AboutUs | null>(null);
+  const [aboutLoading, setAboutLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'store' | 'product'; id: string } | null>(null);
@@ -75,6 +85,7 @@ const Admin = () => {
     document.title = 'Admin — Full Management';
     loadStores();
     loadOwners();
+    loadAboutUs();
   }, []);
 
   useEffect(() => {
@@ -181,6 +192,66 @@ const Admin = () => {
         description: 'Failed to load store owners', 
         variant: 'destructive' 
       });
+    }
+  };
+
+  const loadAboutUs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('about_us')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+      setAboutUs(data);
+    } catch (error) {
+      console.error('Error loading about us:', error);
+    }
+  };
+
+  const saveAboutUs = async () => {
+    if (!aboutUs) return;
+    
+    if (!aboutUs.title.trim() || !aboutUs.content.trim()) {
+      toast({ title: 'Validation', description: 'Title and content are required', variant: 'destructive' });
+      return;
+    }
+
+    setAboutLoading(true);
+    try {
+      if (aboutUs.id) {
+        // Update existing
+        const { error } = await supabase
+          .from('about_us')
+          .update({
+            title: aboutUs.title.trim(),
+            content: aboutUs.content.trim(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', aboutUs.id);
+        
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { error } = await supabase
+          .from('about_us')
+          .insert({
+            title: aboutUs.title.trim(),
+            content: aboutUs.content.trim(),
+          });
+        
+        if (error) throw error;
+      }
+      
+      toast({ title: 'Success', description: 'About Us section updated successfully' });
+      await loadAboutUs();
+    } catch (error) {
+      console.error('Error saving about us:', error);
+      toast({ title: 'Error', description: 'Failed to save About Us section', variant: 'destructive' });
+    } finally {
+      setAboutLoading(false);
     }
   };
 
@@ -348,6 +419,7 @@ const Admin = () => {
         <Tabs defaultValue="stores" className="space-y-4">
           <TabsList>
             <TabsTrigger value="stores">Stores & Products</TabsTrigger>
+            <TabsTrigger value="about">About Us Section</TabsTrigger>
             <TabsTrigger value="owners">Store Owners</TabsTrigger>
           </TabsList>
 
@@ -638,6 +710,61 @@ const Admin = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="about" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Edit About Us Section</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {aboutUs ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Title *</label>
+                      <Input
+                        value={aboutUs.title}
+                        onChange={(e) => setAboutUs({ ...aboutUs, title: e.target.value })}
+                        placeholder="About Us"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Content *</label>
+                      <Textarea
+                        value={aboutUs.content}
+                        onChange={(e) => setAboutUs({ ...aboutUs, content: e.target.value })}
+                        placeholder="Enter about us content..."
+                        rows={10}
+                      />
+                    </div>
+
+                    <Button onClick={saveAboutUs} disabled={aboutLoading}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {aboutLoading ? 'Saving...' : 'Save About Us'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-muted-foreground">
+                    <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No About Us content yet.</p>
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => setAboutUs({
+                        id: '',
+                        title: '',
+                        content: '',
+                        created_at: '',
+                        updated_at: ''
+                      })}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create About Us Section
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="owners" className="space-y-4">

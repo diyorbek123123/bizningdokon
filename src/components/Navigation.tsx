@@ -72,7 +72,7 @@ export const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1 overflow-x-auto max-w-4xl scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+          <div className="hidden lg:flex items-center gap-1 flex-wrap">
             <Button
               asChild
               variant={isActive('/') ? 'default' : 'ghost'}
@@ -109,19 +109,21 @@ export const Navigation = () => {
               </Link>
             </Button>
 
-            <Button
-              asChild
-              variant={isActive('/about') ? 'default' : 'ghost'}
-              size="sm"
-              className="h-8 px-2 text-xs whitespace-nowrap"
-            >
-              <Link to="/about" className="gap-1.5">
-                <Info className="h-3.5 w-3.5" />
-                About
-              </Link>
-            </Button>
+            {userRole !== 'admin' && (
+              <Button
+                asChild
+                variant={isActive('/about') ? 'default' : 'ghost'}
+                size="sm"
+                className="h-8 px-2 text-xs whitespace-nowrap"
+              >
+                <Link to="/about" className="gap-1.5">
+                  <Info className="h-3.5 w-3.5" />
+                  About
+                </Link>
+              </Button>
+            )}
 
-            {user && (
+            {user && userRole !== 'admin' && (
               <Button asChild variant={isActive('/favorites') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
                 <Link to="/favorites" className="gap-1.5">
                   <Heart className="h-3.5 w-3.5" />

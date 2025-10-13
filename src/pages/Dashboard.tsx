@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2, Store, Package, Eye, MessageSquare, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { MapPicker } from '@/components/MapPicker';
 
 interface Store {
   id: string;
@@ -43,6 +44,8 @@ const Dashboard = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [createStoreDialogOpen, setCreateStoreDialogOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState({ lat: 41.2995, lng: 69.2401 });
+  const [storePhotoFile, setStorePhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -246,6 +249,26 @@ const Dashboard = () => {
     }
   };
 
+  const uploadStorePhoto = async () => {
+    if (!storePhotoFile) return null;
+
+    const fileExt = storePhotoFile.name.split('.').pop();
+    const fileName = `store-${Date.now()}-${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, storePhotoFile);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const createStore = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -253,21 +276,34 @@ const Dashboard = () => {
     const address = formData.get('address') as string;
     const phone = formData.get('phone') as string;
     const description = formData.get('description') as string;
-    const latitude = parseFloat(formData.get('latitude') as string);
-    const longitude = parseFloat(formData.get('longitude') as string);
 
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) throw new Error('Not authenticated');
 
+      // Upload store photo if provided
+      let photo_url = null;
+      if (storePhotoFile) {
+        photo_url = await uploadStorePhoto();
+      }
+
       const { data, error } = await supabase.functions.invoke('create-owner-store', {
-        body: { name, address, phone, description, latitude, longitude },
+        body: { 
+          name, 
+          address, 
+          phone, 
+          description, 
+          latitude: selectedLocation.lat, 
+          longitude: selectedLocation.lng,
+          photo_url 
+        },
       });
 
       if (error) throw error;
 
       toast({ title: 'Store created successfully!' });
       setCreateStoreDialogOpen(false);
+      setStorePhotoFile(null);
       (e.target as HTMLFormElement).reset();
       
       // Refresh data
@@ -314,7 +350,7 @@ const Dashboard = () => {
                   Create My Store
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create Your Store</DialogTitle>
                 </DialogHeader>
@@ -335,29 +371,26 @@ const Dashboard = () => {
                     <Label htmlFor="create-description">Description</Label>
                     <Textarea id="create-description" name="description" rows={3} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="create-latitude">Latitude</Label>
-                      <Input 
-                        id="create-latitude" 
-                        name="latitude" 
-                        type="number" 
-                        step="any"
-                        placeholder="41.2995" 
-                        required 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="create-longitude">Longitude</Label>
-                      <Input 
-                        id="create-longitude" 
-                        name="longitude" 
-                        type="number" 
-                        step="any"
-                        placeholder="69.2401" 
-                        required 
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="store-photo">Store Photo</Label>
+                    <Input
+                      id="store-photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setStorePhotoFile(e.target.files?.[0] || null)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload a photo of your store
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Select Store Location on Map</Label>
+                    <MapPicker
+                      onLocationSelect={(lat, lng) => setSelectedLocation({ lat, lng })}
+                      initialLat={selectedLocation.lat}
+                      initialLng={selectedLocation.lng}
+                    />
                   </div>
                   <Button type="submit" className="w-full">
                     Create Store

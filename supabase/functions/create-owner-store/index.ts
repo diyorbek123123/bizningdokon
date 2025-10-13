@@ -72,7 +72,7 @@ serve(async (req) => {
       );
     }
 
-    const { name, address, phone, description, latitude, longitude } = await req.json();
+    const { name, address, phone, description, latitude, longitude, photo_url } = await req.json();
 
     if (!name || !address || !phone || latitude === undefined || longitude === undefined) {
       return new Response(
@@ -91,6 +91,7 @@ serve(async (req) => {
         description,
         latitude,
         longitude,
+        photo_url,
         owner_id: user.id,
       })
       .select()

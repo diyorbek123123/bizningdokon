@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeToggle } from './ThemeToggle';
-import { Store, MapPin, Plus, LogIn, LogOut, Search, Info, Edit } from 'lucide-react';
+import { Store, MapPin, Plus, LogIn, LogOut, Search, Info, Edit, Heart, LayoutDashboard, UserCog } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
@@ -14,39 +14,36 @@ export const Navigation = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRole(session.user.id);
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRole(session.user.id);
       } else {
-        setIsAdmin(false);
+        setUserRole(null);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = async (userId: string) => {
+  const checkUserRole = async (userId: string) => {
     const { data } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .eq('role', 'admin')
       .maybeSingle();
     
-    setIsAdmin(!!data);
+    setUserRole(data?.role || null);
   };
 
   const handleLogout = async () => {
@@ -118,38 +115,44 @@ export const Navigation = () => {
               </Link>
             </Button>
 
-            {isAdmin && (
+            {user && (
+              <Button asChild variant={isActive('/favorites') ? 'default' : 'ghost'} size="sm">
+                <Link to="/favorites" className="gap-2">
+                  <Heart className="h-4 w-4" />
+                  <span className="hidden sm:inline">Favorites</span>
+                </Link>
+              </Button>
+            )}
+
+            {(userRole === 'store_owner' || userRole === 'admin') && (
+              <Button asChild variant={isActive('/dashboard') ? 'default' : 'ghost'} size="sm">
+                <Link to="/dashboard" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Link>
+              </Button>
+            )}
+
+            {userRole === 'admin' && (
               <>
-                <Button
-                  asChild
-                  variant={isActive('/add-store') ? 'default' : 'ghost'}
-                  size="sm"
-                >
+                <Button asChild variant={isActive('/add-store') ? 'default' : 'ghost'} size="sm">
                   <Link to="/add-store" className="gap-2">
                     <Plus className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('nav.addStore')}</span>
                   </Link>
                 </Button>
                 
-                <Button
-                  asChild
-                  variant={isActive('/admin') ? 'default' : 'ghost'}
-                  size="sm"
-                >
+                <Button asChild variant={isActive('/admin') ? 'default' : 'ghost'} size="sm">
                   <Link to="/admin" className="gap-2">
                     <Edit className="h-4 w-4" />
                     <span className="hidden sm:inline">Admin</span>
                   </Link>
                 </Button>
                 
-                <Button
-                  asChild
-                  variant={isActive('/edit-about') ? 'default' : 'ghost'}
-                  size="sm"
-                >
-                  <Link to="/edit-about" className="gap-2">
-                    <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">Edit About</span>
+                <Button asChild variant={isActive('/owner-admin') ? 'default' : 'ghost'} size="sm">
+                  <Link to="/owner-admin" className="gap-2">
+                    <UserCog className="h-4 w-4" />
+                    <span className="hidden sm:inline">Owners</span>
                   </Link>
                 </Button>
               </>

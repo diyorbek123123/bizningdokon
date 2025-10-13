@@ -44,6 +44,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           name: string
           price: number
           store_id: string
@@ -54,6 +55,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name: string
           price: number
           store_id: string
@@ -64,6 +66,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           price?: number
           store_id?: string
@@ -78,6 +81,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       store_reviews: {
         Row: {
@@ -130,6 +157,7 @@ export type Database = {
           longitude: number
           name: string
           open_time: string | null
+          owner_id: string | null
           phone: string
           photo_url: string | null
           rating: number | null
@@ -148,6 +176,7 @@ export type Database = {
           longitude: number
           name: string
           open_time?: string | null
+          owner_id?: string | null
           phone: string
           photo_url?: string | null
           rating?: number | null
@@ -166,13 +195,22 @@ export type Database = {
           longitude?: number
           name?: string
           open_time?: string | null
+          owner_id?: string | null
           phone?: string
           photo_url?: string | null
           rating?: number | null
           review_count?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stores_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_favorites: {
         Row: {

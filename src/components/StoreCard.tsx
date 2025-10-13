@@ -91,6 +91,10 @@ export const StoreCard = ({
     }
   };
 
+  const openDirections = () => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+  };
+
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl relative rounded-2xl">
       <button
@@ -117,21 +121,75 @@ export const StoreCard = ({
       </div>
 
       <div className="p-4 space-y-3">
-        <h3 className="text-lg font-semibold line-clamp-1">{name}</h3>
-
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
-          <span className="line-clamp-1">{address}</span>
-          {distance !== null && distance !== undefined && (
-            <span className="ml-auto font-medium whitespace-nowrap">· {distance.toFixed(0)} km</span>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-lg font-semibold line-clamp-1 flex-1">{name}</h3>
+          {rating !== undefined && rating > 0 && (
+            <div className="flex items-center gap-1 text-sm font-medium">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span>{rating.toFixed(1)}</span>
+              {review_count !== undefined && review_count > 0 && (
+                <span className="text-muted-foreground">({review_count})</span>
+              )}
+            </div>
           )}
         </div>
 
-        <Button asChild className="w-full bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl">
-          <Link to={`/store/${id}`}>
-            Ko'rish
-          </Link>
-        </Button>
+        {description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+        )}
+
+        {category && (
+          <Badge variant="secondary" className="rounded-full">
+            {category}
+          </Badge>
+        )}
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            <span className="line-clamp-1 flex-1">{address}</span>
+            {distance !== null && distance !== undefined && (
+              <span className="font-medium whitespace-nowrap">{distance.toFixed(1)} km</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Phone className="h-4 w-4 flex-shrink-0" />
+            <a href={`tel:${phone}`} className="hover:text-primary transition-colors">
+              {phone}
+            </a>
+          </div>
+
+          {(open_time || close_time) && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span className={status.open ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>
+                {status.text}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button
+            onClick={openDirections}
+            variant="outline"
+            size="sm"
+            className="flex-1 gap-2"
+          >
+            <Navigation2 className="h-4 w-4" />
+            Yo'nalish
+          </Button>
+          <Button
+            asChild
+            className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+            size="sm"
+          >
+            <Link to={`/store/${id}`}>
+              Ko'rish
+            </Link>
+          </Button>
+        </div>
       </div>
     </Card>
   );

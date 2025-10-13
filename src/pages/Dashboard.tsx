@@ -112,12 +112,12 @@ const Dashboard = () => {
 
       setProducts(productsData || []);
 
-      // Fetch reviews
+      // Fetch reviews with profile information
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('store_reviews')
         .select(`
           *,
-          profiles:user_id (
+          profiles!store_reviews_user_id_fkey (
             full_name,
             email
           )

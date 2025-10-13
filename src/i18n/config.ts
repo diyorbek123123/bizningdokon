@@ -17,6 +17,12 @@ const resources = {
       common: {
         loading: 'Loading...',
         error: 'Error',
+        allStores: 'All Stores',
+        favorites: 'Favorites',
+        noStoresFound: 'No stores found matching your criteria',
+        noStores: 'No stores yet',
+        noFavorites: 'No favorites yet',
+        clickHeart: 'Click the heart icon on stores to save them',
       },
       auth: {
         login: 'Login',
@@ -55,6 +61,11 @@ const resources = {
         success: 'Store added successfully!',
         error: 'Failed to add store',
       },
+      dashboard: {
+        title: 'My Store Dashboard',
+        selectStore: 'Select Store',
+        selectStorePlaceholder: 'Choose a store',
+      },
       map: {
         title: 'Store Locations',
         clickStore: 'Click on a marker to view store details',
@@ -76,6 +87,12 @@ const resources = {
       common: {
         loading: 'Загрузка...',
         error: 'Ошибка',
+        allStores: 'Все магазины',
+        favorites: 'Избранное',
+        noStoresFound: 'Магазины не найдены',
+        noStores: 'Магазинов пока нет',
+        noFavorites: 'Избранных пока нет',
+        clickHeart: 'Нажмите на сердечко, чтобы сохранить магазины',
       },
       auth: {
         login: 'Войти',
@@ -114,6 +131,11 @@ const resources = {
         success: 'Магазин успешно добавлен!',
         error: 'Не удалось добавить магазин',
       },
+      dashboard: {
+        title: 'Панель управления магазином',
+        selectStore: 'Выбрать магазин',
+        selectStorePlaceholder: 'Выберите магазин',
+      },
       map: {
         title: 'Расположение магазинов',
         clickStore: 'Нажмите на маркер, чтобы увидеть детали магазина',
@@ -135,6 +157,12 @@ const resources = {
       common: {
         loading: 'Yuklanmoqda...',
         error: 'Xato',
+        allStores: "Barcha do'konlar",
+        favorites: 'Sevimlilar',
+        noStoresFound: "Do'konlar topilmadi",
+        noStores: "Do'konlar hali yo'q",
+        noFavorites: "Sevimlilar hali yo'q",
+        clickHeart: "Do'konlarni saqlash uchun yurak belgisini bosing",
       },
       auth: {
         login: 'Kirish',
@@ -172,6 +200,11 @@ const resources = {
         submit: "Do'kon qo'shish",
         success: "Do'kon muvaffaqiyatli qo'shildi!",
         error: "Do'kon qo'shib bo'lmadi",
+      },
+      dashboard: {
+        title: "Do'kon boshqaruv paneli",
+        selectStore: "Do'konni tanlang",
+        selectStorePlaceholder: "Do'konni tanlang",
       },
       map: {
         title: "Do'konlarning joylashuvi",

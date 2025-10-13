@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Plus, Trash2, Store, Package, Eye, MessageSquare, Edit } from 'lucide-r
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { MapPicker } from '@/components/MapPicker';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Store {
   id: string;
@@ -40,8 +42,10 @@ interface Product {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { toast } = useToast();
-  const [store, setStore] = useState<Store | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +59,8 @@ const Dashboard = () => {
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editStorePhotoFile, setEditStorePhotoFile] = useState<File | null>(null);
   const [editStoreLocation, setEditStoreLocation] = useState({ lat: 41.2995, lng: 69.2401 });
+
+  const store = stores.find(s => s.id === selectedStoreId) || null;
 
   useEffect(() => {
     checkAuth();
@@ -88,32 +94,35 @@ const Dashboard = () => {
 
   const fetchStoreData = async (userId: string) => {
     try {
-      // Fetch store owned by this user
-      const { data: storeData, error: storeError } = await supabase
+      // Fetch ALL stores owned by this user
+      const { data: storesData, error: storesError } = await supabase
         .from('stores')
         .select('*')
-        .eq('owner_id', userId)
-        .maybeSingle();
+        .eq('owner_id', userId);
 
-      if (storeError) throw storeError;
+      if (storesError) throw storesError;
 
-      if (!storeData) {
+      if (!storesData || storesData.length === 0) {
         setLoading(false);
         return;
       }
 
-      setStore(storeData);
-
-      // Fetch products
+      setStores(storesData);
+      
+      // Auto-select the first store if none selected
+      const storeToSelect = storesData[0].id;
+      setSelectedStoreId(storeToSelect);
+      
+      // Fetch products for selected store
       const { data: productsData } = await supabase
         .from('products')
         .select('*')
-        .eq('store_id', storeData.id);
+        .eq('store_id', storeToSelect);
 
       setProducts(productsData || []);
 
       // Fetch reviews with profile information
-      const { data: reviewsData, error: reviewsError } = await supabase
+      const { data: reviewsData } = await supabase
         .from('store_reviews')
         .select(`
           *,
@@ -122,17 +131,42 @@ const Dashboard = () => {
             email
           )
         `)
-        .eq('store_id', storeData.id)
+        .eq('store_id', storeToSelect)
         .order('created_at', { ascending: false });
 
-      console.log('Reviews data:', reviewsData);
-      console.log('Reviews error:', reviewsError);
       setReviews(reviewsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStoreChange = async (storeId: string) => {
+    setSelectedStoreId(storeId);
+    
+    // Fetch products for the selected store
+    const { data: productsData } = await supabase
+      .from('products')
+      .select('*')
+      .eq('store_id', storeId);
+
+    setProducts(productsData || []);
+
+    // Fetch reviews for the selected store
+    const { data: reviewsData } = await supabase
+      .from('store_reviews')
+      .select(`
+        *,
+        profiles!store_reviews_user_id_fkey (
+          full_name,
+          email
+        )
+      `)
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false });
+
+    setReviews(reviewsData || []);
   };
 
   const handleImageUpload = async (productId: string) => {
@@ -511,7 +545,26 @@ const Dashboard = () => {
       <Navigation />
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Store Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+          {stores.length > 1 && (
+            <div className="w-64">
+              <Label>{t('dashboard.selectStore')}</Label>
+              <Select value={selectedStoreId || undefined} onValueChange={handleStoreChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('dashboard.selectStorePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {stores.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
 
         <div className="grid gap-6">
           {/* Store Overview */}

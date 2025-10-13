@@ -33,7 +33,7 @@ const ProductSearch = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [products, setProducts] = useState<ProductWithStore[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState<'price' | 'distance'>('price');
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'distance'>('name');
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
 
   useEffect(() => {
@@ -154,15 +154,12 @@ const ProductSearch = () => {
   };
 
   const sortedProducts = [...products].sort((a, b) => {
-    // First, sort alphabetically by name
-    const nameCompare = a.name.localeCompare(b.name);
-    
-    // Then apply the selected sorting
-    if (sortBy === 'price') {
-      return a.price === b.price ? nameCompare : a.price - b.price;
+    if (sortBy === 'name') {
+      return a.name.localeCompare(b.name);
+    } else if (sortBy === 'price') {
+      return a.price - b.price;
     } else {
-      const distanceCompare = (a.distance || 0) - (b.distance || 0);
-      return distanceCompare === 0 ? nameCompare : distanceCompare;
+      return (a.distance || 0) - (b.distance || 0);
     }
   });
 
@@ -189,6 +186,12 @@ const ProductSearch = () => {
 
           {products.length > 0 && (
             <div className="flex gap-2 mb-6">
+              <Button
+                variant={sortBy === 'name' ? 'default' : 'outline'}
+                onClick={() => setSortBy('name')}
+              >
+                Sort Alphabetically
+              </Button>
               <Button
                 variant={sortBy === 'price' ? 'default' : 'outline'}
                 onClick={() => setSortBy('price')}

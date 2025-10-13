@@ -1,11 +1,62 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from './LanguageSelector';
-import { Store, MapPin, Plus } from 'lucide-react';
+import { Store, MapPin, Plus, LogIn, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 
 export const Navigation = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdminRole(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdminRole(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkAdminRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .maybeSingle();
+    
+    setIsAdmin(!!data);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: t('auth.logout'),
+      description: 'Logged out successfully',
+    });
+    navigate('/');
+  };
+  
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
@@ -44,16 +95,32 @@ export const Navigation = () => {
               </Link>
             </Button>
 
-            <Button
-              asChild
-              variant={isActive('/add-store') ? 'default' : 'ghost'}
-              size="sm"
-            >
-              <Link to="/add-store" className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('nav.addStore')}</span>
-              </Link>
-            </Button>
+            {isAdmin && (
+              <Button
+                asChild
+                variant={isActive('/add-store') ? 'default' : 'ghost'}
+                size="sm"
+              >
+                <Link to="/add-store" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('nav.addStore')}</span>
+                </Link>
+              </Button>
+            )}
+
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/auth" className="gap-2">
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Login</span>
+                </Link>
+              </Button>
+            )}
 
             <LanguageSelector />
           </div>

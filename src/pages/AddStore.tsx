@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -15,6 +15,46 @@ const AddStore = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: t('auth.adminOnly'),
+        description: t('auth.loginDescription'),
+        variant: 'destructive',
+      });
+      navigate('/auth');
+      return;
+    }
+
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (!data) {
+      toast({
+        title: t('auth.adminOnly'),
+        description: 'You need admin privileges to add stores',
+        variant: 'destructive',
+      });
+      navigate('/');
+      return;
+    }
+
+    setIsAdmin(true);
+    setChecking(false);
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -62,6 +102,21 @@ const AddStore = () => {
       setLoading(false);
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+          <p>{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">

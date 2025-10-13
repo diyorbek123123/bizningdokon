@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import MapView from "./pages/MapView";
 import AddStore from "./pages/AddStore";
 import StoreDetail from "./pages/StoreDetail";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/map" element={<MapView />} />
           <Route path="/add-store" element={<AddStore />} />
           <Route path="/store/:id" element={<StoreDetail />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

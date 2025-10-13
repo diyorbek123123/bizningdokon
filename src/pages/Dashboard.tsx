@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Store, Package, Eye, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Store, Package, Eye, MessageSquare, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
@@ -20,6 +20,8 @@ interface Store {
   rating: number | null;
   review_count: number | null;
   is_open: boolean | null;
+  open_time: string | null;
+  close_time: string | null;
 }
 
 interface Product {
@@ -39,6 +41,7 @@ const Dashboard = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -203,6 +206,45 @@ const Dashboard = () => {
     }
   };
 
+  const updateStore = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!store) return;
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const address = formData.get('address') as string;
+    const phone = formData.get('phone') as string;
+    const description = formData.get('description') as string;
+    const open_time = formData.get('open_time') as string;
+    const close_time = formData.get('close_time') as string;
+
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          name,
+          address,
+          phone,
+          description,
+          open_time: open_time || null,
+          close_time: close_time || null,
+        })
+        .eq('id', store.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Store updated successfully' });
+      setStore({ ...store, name, address, phone, description });
+      setEditDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Error updating store',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -250,10 +292,88 @@ const Dashboard = () => {
                   <Store className="h-5 w-5" />
                   {store.name}
                 </CardTitle>
-                <Button variant="outline" onClick={() => navigate(`/store/${store.id}`)}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Public Page
-                </Button>
+                <div className="flex gap-2">
+                  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Store
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Edit Store Details</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={updateStore} className="space-y-4">
+                        <div>
+                          <Label htmlFor="edit-name">Store Name</Label>
+                          <Input 
+                            id="edit-name" 
+                            name="name" 
+                            defaultValue={store.name}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-address">Address</Label>
+                          <Input 
+                            id="edit-address" 
+                            name="address" 
+                            defaultValue={store.address}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-phone">Phone</Label>
+                          <Input 
+                            id="edit-phone" 
+                            name="phone" 
+                            type="tel"
+                            defaultValue={store.phone}
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-description">Description</Label>
+                          <Textarea 
+                            id="edit-description" 
+                            name="description" 
+                            defaultValue={store.description || ''}
+                            rows={4}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="edit-open-time">Opening Time</Label>
+                            <Input 
+                              id="edit-open-time" 
+                              name="open_time" 
+                              type="time"
+                              defaultValue={store.open_time || ''}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="edit-close-time">Closing Time</Label>
+                            <Input 
+                              id="edit-close-time" 
+                              name="close_time" 
+                              type="time"
+                              defaultValue={store.close_time || ''}
+                            />
+                          </div>
+                        </div>
+                        <Button type="submit" className="w-full">
+                          Save Changes
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Button variant="outline" onClick={() => navigate(`/store/${store.id}`)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Public Page
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

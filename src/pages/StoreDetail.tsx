@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,18 +31,41 @@ interface Product {
   image_url: string | null;
 }
 
+interface Review {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  profiles: {
+    full_name: string;
+  } | null;
+}
+
 const StoreDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+  }, []);
 
   useEffect(() => {
     if (id) {
       fetchStoreAndProducts();
+      fetchReviews();
     }
   }, [id]);
 
@@ -75,6 +99,88 @@ const StoreDetail = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('store_reviews')
+        .select(`
+          id,
+          user_id,
+          rating,
+          comment,
+          created_at
+        `)
+        .eq('store_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Fetch user profiles separately
+      const reviewsWithProfiles = await Promise.all(
+        (data || []).map(async (review) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', review.user_id)
+            .single();
+          
+          return {
+            ...review,
+            profiles: profile || { full_name: 'Anonymous' }
+          };
+        })
+      );
+      
+      setReviews(reviewsWithProfiles);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to leave a review',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('store_reviews')
+        .insert({
+          store_id: id,
+          user_id: user.id,
+          rating,
+          comment: comment.trim() || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Your review has been submitted',
+      });
+
+      setRating(5);
+      setComment('');
+      fetchReviews();
+      fetchStoreAndProducts(); // Refresh to update rating
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit review',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -221,6 +327,93 @@ const StoreDetail = () => {
                       {product.price.toLocaleString()} UZS
                     </p>
                   </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Reviews Section */}
+        <div className="space-y-6 mt-8">
+          <h2 className="text-2xl font-bold">Reviews</h2>
+          
+          {/* Review Form */}
+          {user ? (
+            <Card className="p-6">
+              <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className="transition-colors"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+                  <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Share your experience..."
+                    rows={4}
+                  />
+                </div>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Submitting...' : 'Submit Review'}
+                </Button>
+              </form>
+            </Card>
+          ) : (
+            <Card className="p-6 text-center">
+              <p className="text-muted-foreground mb-4">Sign in to leave a review</p>
+              <Button asChild>
+                <Link to="/auth">Sign In</Link>
+              </Button>
+            </Card>
+          )}
+
+          {/* Reviews List */}
+          {reviews.length === 0 ? (
+            <Card className="p-12 text-center">
+              <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <Card key={review.id} className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold">{review.profiles?.full_name || 'Anonymous'}</p>
+                      <div className="flex gap-1 mt-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {review.comment && (
+                    <p className="text-muted-foreground">{review.comment}</p>
+                  )}
                 </Card>
               ))}
             </div>

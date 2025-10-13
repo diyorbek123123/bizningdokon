@@ -80,11 +80,33 @@ const MapView = () => {
     });
     
     map.current.addControl(geolocate, 'top-right');
+
+    // Map error handling & fallback
+    map.current.on('error', (e) => {
+      const msg = (e as any)?.error?.message || 'Unknown map error';
+      toast({
+        title: t('map.loadError', { defaultValue: 'Map failed to load' }),
+        description: msg.includes('Unauthorized') || msg.includes('forbidden')
+          ? t('map.tokenIssue', { defaultValue: 'Your token may be invalid or domain-restricted. Try saving a different Mapbox public token.' })
+          : msg,
+        variant: 'destructive',
+      });
+      try {
+        // Try a different style as fallback
+        map.current?.setStyle('mapbox://styles/mapbox/streets-v12');
+      } catch {}
+    });
     
-    // Trigger geolocation on map load
+    // Trigger geolocation and ensure proper sizing
     map.current.on('load', () => {
       geolocate.trigger();
+      map.current?.resize();
+      setTimeout(() => map.current?.resize(), 50);
     });
+
+    // Resize on window resize to avoid blank map
+    const onResize = () => map.current?.resize();
+    window.addEventListener('resize', onResize);
 
     // Add markers for each store
     stores.forEach((store) => {
@@ -114,6 +136,7 @@ const MapView = () => {
     }
 
     return () => {
+      window.removeEventListener('resize', onResize);
       map.current?.remove();
     };
   }, [stores, navigate, mapboxToken, t]);

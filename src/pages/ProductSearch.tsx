@@ -53,13 +53,26 @@ const ProductSearch = () => {
     }
   }, []);
 
+  // Live search with debouncing
   useEffect(() => {
     const query = searchParams.get('q');
     if (query) {
       setSearchQuery(query);
-      searchProducts(query);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        setSearchParams({ q: searchQuery });
+        searchProducts(searchQuery);
+      } else {
+        setProducts([]);
+      }
+    }, 300); // Debounce for 300ms
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of Earth in km
@@ -137,9 +150,7 @@ const ProductSearch = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearchParams({ q: searchQuery });
-    }
+    // Form submission still works but search happens live now
   };
 
   const sortedProducts = [...products].sort((a, b) => {

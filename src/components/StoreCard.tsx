@@ -92,23 +92,23 @@ export const StoreCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] relative">
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl relative rounded-2xl">
       <button
         onClick={toggleFavorite}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background transition-colors"
       >
-        <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
+        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
       </button>
 
-      <div className="aspect-video w-full overflow-hidden bg-muted">
+      <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
         {photo_url ? (
           <img
             src={photo_url}
             alt={name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 to-primary-glow/10">
             <span className="text-6xl font-bold text-muted-foreground opacity-20">
               {name.charAt(0)}
             </span>
@@ -117,73 +117,21 @@ export const StoreCard = ({
       </div>
 
       <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-xl font-bold line-clamp-1 flex-1">{name}</h3>
-          {category && (
-            <Badge variant="secondary" className="capitalize text-xs">
-              {category}
-            </Badge>
-          )}
-        </div>
+        <h3 className="text-lg font-semibold line-clamp-1">{name}</h3>
 
-        <div className="flex items-center gap-3 text-sm">
-          {rating && rating > 0 ? (
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{rating.toFixed(1)}</span>
-              {review_count && review_count > 0 && (
-                <span className="text-muted-foreground">({review_count})</span>
-              )}
-            </div>
-          ) : null}
-
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span className="line-clamp-1">{address}</span>
           {distance !== null && distance !== undefined && (
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Navigation2 className="h-3 w-3" />
-              <span className="text-xs">{distance.toFixed(1)} km</span>
-            </div>
-          )}
-
-          {status.text && (
-            <div className={`flex items-center gap-1 text-xs ${status.open ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
-              <Clock className="h-3 w-3" />
-              <span>{status.text}</span>
-            </div>
+            <span className="ml-auto font-medium whitespace-nowrap">· {distance.toFixed(0)} km</span>
           )}
         </div>
-        
-        {description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
-        )}
 
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone className="h-4 w-4 text-primary" />
-            <span>{phone}</span>
-          </div>
-          <div className="flex items-start gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-            <span className="line-clamp-1">{address}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button asChild variant="default">
-            <Link to={`/store/${id}`}>
-              {t('store.products')}
-            </Link>
-          </Button>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-              window.open(url, '_blank');
-            }}
-          >
-            <Navigation2 className="mr-2 h-4 w-4" />
-            Direction
-          </Button>
-        </div>
+        <Button asChild className="w-full bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl">
+          <Link to={`/store/${id}`}>
+            Ko'rish
+          </Link>
+        </Button>
       </div>
     </Card>
   );

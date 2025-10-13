@@ -66,9 +66,8 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-            <Store className="h-6 w-6 text-primary" />
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              ShopFinder
+            <span className="text-foreground">
+              BizningDo'kon
             </span>
           </Link>
 
@@ -164,13 +163,12 @@ export const Navigation = () => {
             {user ? (
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                Chiqish
               </Button>
             ) : (
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                 <Link to="/auth" className="gap-2">
-                  <LogIn className="h-4 w-4" />
-                  Login
+                  Kirish
                 </Link>
               </Button>
             )}

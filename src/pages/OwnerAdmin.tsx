@@ -70,47 +70,30 @@ const OwnerAdmin = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch all profiles with roles
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_roles(role)
-        `);
+      // Load owners via secure backend function (avoids broken FK joins)
+      const { data: ownersResp, error: ownersErr } = await supabase.functions.invoke('list-store-owners');
+      if (ownersErr) throw ownersErr;
 
-      // Fetch all stores
-      const { data: storesData } = await supabase
+      // Load stores normally
+      const { data: storesData, error: storesErr } = await supabase
         .from('stores')
         .select('*');
+      if (storesErr) throw storesErr;
 
       setStores(storesData || []);
 
-      // Process owners
-      if (profilesData) {
-        const ownersWithStores = await Promise.all(
-          profilesData.map(async (profile: any) => {
-            const role = profile.user_roles?.[0]?.role || 'user';
-            
-            if (role === 'store_owner' || role === 'admin') {
-              const { data: ownerStores } = await supabase
-                .from('stores')
-                .select('id, name')
-                .eq('owner_id', profile.id);
-
-              return {
-                ...profile,
-                role,
-                stores: ownerStores || [],
-              };
-            }
-            return null;
-          })
-        );
-
-        setOwners(ownersWithStores.filter(Boolean) as StoreOwner[]);
-      }
+      const ownersData = (ownersResp?.owners || []).map((o: any) => ({
+        ...o,
+        role: 'store_owner',
+      }));
+      setOwners(ownersData);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast({
+        title: 'Failed to load owners',
+        description: 'Please try again in a moment.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }

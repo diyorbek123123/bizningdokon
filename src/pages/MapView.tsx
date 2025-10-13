@@ -154,8 +154,11 @@ const MapView = () => {
     fetchProductsForStore(store.id);
   };
 
-  const openDirections = (lat: number, lng: number) => {
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  const getDirectionsUrl = (lat: number, lng: number) => {
+    const dest = `${lat},${lng}`;
+    const origin = userLocation ? `&origin=${userLocation[0]},${userLocation[1]}` : '';
+    // Prefer Google Maps universal link; iOS Safari will open app if installed
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}${origin}&travelmode=driving`;
   };
 
   const query = productSearch.trim().toLowerCase();
@@ -311,13 +314,15 @@ const MapView = () => {
                 </div>
 
                 <div className="flex gap-2 mt-4">
-                  <Button
-                    variant="default"
-                    className="flex-1"
-                    onClick={() => openDirections(selectedStore.latitude, selectedStore.longitude)}
-                  >
-                    <NavigationIcon className="h-4 w-4 mr-2" />
-                    {t('map.directions', { defaultValue: 'Get Directions' })}
+                  <Button variant="default" className="flex-1" asChild>
+                    <a
+                      href={getDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <NavigationIcon className="h-4 w-4 mr-2" />
+                      {t('map.directions', { defaultValue: 'Get Directions' })}
+                    </a>
                   </Button>
                   <Button
                     variant="outline"

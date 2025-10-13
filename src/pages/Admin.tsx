@@ -350,278 +350,293 @@ const Admin = () => {
           </Select>
         </div>
 
-        {selectedStore && (
-          <Tabs defaultValue="store" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="store">Store Details</TabsTrigger>
-              <TabsTrigger value="products">Products</TabsTrigger>
-              <TabsTrigger value="owners">Store Owners</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="stores" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="stores">Stores & Products</TabsTrigger>
+            <TabsTrigger value="owners">Store Owners</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="store" className="space-y-4">
+          <TabsContent value="stores" className="space-y-4">
+            {selectedStore ? (
+              <Tabs defaultValue="store" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="store">Store Details</TabsTrigger>
+                  <TabsTrigger value="products">Products</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="store" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Store Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="text-sm font-medium">Store Name *</label>
+                          <Input
+                            value={selectedStore.name}
+                            onChange={(e) => setSelectedStore({ ...selectedStore, name: e.target.value })}
+                            placeholder="Store name"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Phone *</label>
+                          <Input
+                            value={selectedStore.phone}
+                            onChange={(e) => setSelectedStore({ ...selectedStore, phone: e.target.value })}
+                            placeholder="+998..."
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Address *</label>
+                        <Input
+                          value={selectedStore.address}
+                          onChange={(e) => setSelectedStore({ ...selectedStore, address: e.target.value })}
+                          placeholder="Street address"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Description</label>
+                        <Textarea
+                          value={selectedStore.description || ''}
+                          onChange={(e) => setSelectedStore({ ...selectedStore, description: e.target.value })}
+                          placeholder="Store description"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          <MapPin className="inline h-4 w-4 mr-1" />
+                          Location on Map (Click or drag marker to set coordinates)
+                        </label>
+                        <div className="h-[300px] rounded-lg border overflow-hidden mb-2">
+                          <div ref={adminMapRef} className="w-full h-full" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Current: {selectedStore.latitude.toFixed(6)}°N, {selectedStore.longitude.toFixed(6)}°E
+                        </p>
+                      </div>
+
+
+                      <div>
+                        <label className="text-sm font-medium">Photo URL</label>
+                        <Input
+                          value={selectedStore.photo_url || ''}
+                          onChange={(e) => setSelectedStore({ ...selectedStore, photo_url: e.target.value })}
+                          placeholder="https://..."
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-4">
+                        <Button onClick={saveStore} className="flex-1 sm:flex-none">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Store
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => confirmDelete('store', selectedStoreId)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Store
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="products" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Add New Product</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 sm:grid-cols-[1fr,2fr,120px,auto]">
+                        <Input
+                          placeholder="Product name *"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Description (optional)"
+                          value={newProduct.description}
+                          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Price *"
+                          value={newProduct.price}
+                          onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })}
+                        />
+                        <Button onClick={addProduct}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Products</CardTitle>
+                        <span className="text-sm text-muted-foreground">
+                          {loading ? 'Loading…' : `${products.length} items`}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {products.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                          <p>No products yet. Add one above.</p>
+                        </div>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead className="w-[120px]">Price</TableHead>
+                              <TableHead className="w-[160px]">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {products.map((prod, idx) => (
+                              <TableRow key={prod.id}>
+                                <TableCell>
+                                  <Input
+                                    value={prod.name}
+                                    onChange={(e) => {
+                                      const copy = [...products];
+                                      copy[idx] = { ...copy[idx], name: e.target.value };
+                                      setProducts(copy);
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={prod.description || ''}
+                                    onChange={(e) => {
+                                      const copy = [...products];
+                                      copy[idx] = { ...copy[idx], description: e.target.value };
+                                      setProducts(copy);
+                                    }}
+                                    placeholder="Description"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={Number(prod.price).toString()}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      const copy = [...products];
+                                      copy[idx] = { ...copy[idx], price: isNaN(val) ? 0 : val };
+                                      setProducts(copy);
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => saveProduct(products[idx])}>
+                                      <Save className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => confirmDelete('product', prod.id)}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            ) : (
               <Card>
-                <CardHeader>
-                  <CardTitle>Store Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium">Store Name *</label>
-                      <Input
-                        value={selectedStore.name}
-                        onChange={(e) => setSelectedStore({ ...selectedStore, name: e.target.value })}
-                        placeholder="Store name"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Phone *</label>
-                      <Input
-                        value={selectedStore.phone}
-                        onChange={(e) => setSelectedStore({ ...selectedStore, phone: e.target.value })}
-                        placeholder="+998..."
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Address *</label>
-                    <Input
-                      value={selectedStore.address}
-                      onChange={(e) => setSelectedStore({ ...selectedStore, address: e.target.value })}
-                      placeholder="Street address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Description</label>
-                    <Textarea
-                      value={selectedStore.description || ''}
-                      onChange={(e) => setSelectedStore({ ...selectedStore, description: e.target.value })}
-                      placeholder="Store description"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      <MapPin className="inline h-4 w-4 mr-1" />
-                      Location on Map (Click or drag marker to set coordinates)
-                    </label>
-                    <div className="h-[300px] rounded-lg border overflow-hidden mb-2">
-                      <div ref={adminMapRef} className="w-full h-full" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Current: {selectedStore.latitude.toFixed(6)}°N, {selectedStore.longitude.toFixed(6)}°E
-                    </p>
-                  </div>
-
-
-                  <div>
-                    <label className="text-sm font-medium">Photo URL</label>
-                    <Input
-                      value={selectedStore.photo_url || ''}
-                      onChange={(e) => setSelectedStore({ ...selectedStore, photo_url: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div className="flex gap-2 pt-4">
-                    <Button onClick={saveStore} className="flex-1 sm:flex-none">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Store
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => confirmDelete('store', selectedStoreId)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Store
-                    </Button>
-                  </div>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  <AlertCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">Select a store to manage its details and products</p>
                 </CardContent>
               </Card>
-            </TabsContent>
+            )}
+          </TabsContent>
 
-            <TabsContent value="products" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Product</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-[1fr,2fr,120px,auto]">
-                    <Input
-                      placeholder="Product name *"
-                      value={newProduct.name}
-                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                    />
-                    <Input
-                      placeholder="Description (optional)"
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="Price *"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })}
-                    />
-                    <Button onClick={addProduct}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
+          <TabsContent value="owners" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Store Owners</CardTitle>
+                  <span className="text-sm text-muted-foreground">
+                    {owners.length} owner{owners.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {owners.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No store owners registered yet.</p>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Products</CardTitle>
-                    <span className="text-sm text-muted-foreground">
-                      {loading ? 'Loading…' : `${products.length} items`}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {products.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No products yet. Add one above.</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead className="w-[120px]">Price</TableHead>
-                          <TableHead className="w-[160px]">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.map((prod, idx) => (
-                          <TableRow key={prod.id}>
-                            <TableCell>
-                              <Input
-                                value={prod.name}
-                                onChange={(e) => {
-                                  const copy = [...products];
-                                  copy[idx] = { ...copy[idx], name: e.target.value };
-                                  setProducts(copy);
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                value={prod.description || ''}
-                                onChange={(e) => {
-                                  const copy = [...products];
-                                  copy[idx] = { ...copy[idx], description: e.target.value };
-                                  setProducts(copy);
-                                }}
-                                placeholder="Description"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={Number(prod.price).toString()}
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value);
-                                  const copy = [...products];
-                                  copy[idx] = { ...copy[idx], price: isNaN(val) ? 0 : val };
-                                  setProducts(copy);
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button size="sm" onClick={() => saveProduct(products[idx])}>
-                                  <Save className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => confirmDelete('product', prod.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Stores</TableHead>
+                        <TableHead>Joined</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {owners.map((owner) => (
+                        <TableRow key={owner.id}>
+                          <TableCell className="font-medium">{owner.full_name}</TableCell>
+                          <TableCell>{owner.email}</TableCell>
+                          <TableCell>
+                            {owner.stores.length === 0 ? (
+                              <span className="text-muted-foreground">No stores</span>
+                            ) : (
+                              <div className="flex flex-col gap-1">
+                                {owner.stores.map((store) => (
+                                  <span key={store.id} className="text-sm">
+                                    {store.name}
+                                  </span>
+                                ))}
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="owners" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Store Owners</CardTitle>
-                    <span className="text-sm text-muted-foreground">
-                      {owners.length} owners
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {owners.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No store owners registered yet.</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Stores</TableHead>
-                          <TableHead>Joined</TableHead>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(owner.created_at).toLocaleDateString()}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {owners.map((owner) => (
-                          <TableRow key={owner.id}>
-                            <TableCell className="font-medium">{owner.full_name}</TableCell>
-                            <TableCell>{owner.email}</TableCell>
-                            <TableCell>
-                              {owner.stores.length === 0 ? (
-                                <span className="text-muted-foreground">No stores</span>
-                              ) : (
-                                <div className="flex flex-col gap-1">
-                                  {owner.stores.map((store) => (
-                                    <span key={store.id} className="text-sm">
-                                      {store.name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {new Date(owner.created_at).toLocaleDateString()}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {!selectedStoreId && (
-          <Card>
+          <Card style={{ display: 'none' }}>
             <CardContent className="py-12 text-center text-muted-foreground">
               <AlertCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg">Select a store to manage its details and products</p>

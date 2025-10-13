@@ -49,6 +49,23 @@ const MapView = () => {
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    
+    // Add user location control
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: true,
+      showUserHeading: true,
+      showUserLocation: true
+    });
+    
+    map.current.addControl(geolocate, 'top-right');
+    
+    // Trigger geolocation on map load
+    map.current.on('load', () => {
+      geolocate.trigger();
+    });
 
     // Add markers for each store
     stores.forEach((store) => {
@@ -68,7 +85,7 @@ const MapView = () => {
         `
       );
 
-      const marker = new mapboxgl.Marker({ color: '#2aa89a' })
+      const marker = new mapboxgl.Marker({ color: '#3b82f6' })
         .setLngLat([store.longitude, store.latitude])
         .setPopup(popup)
         .addTo(map.current!);

@@ -8,6 +8,8 @@ import MapView from "./pages/MapView";
 import AddStore from "./pages/AddStore";
 import StoreDetail from "./pages/StoreDetail";
 import ProductSearch from "./pages/ProductSearch";
+import AboutUs from "./pages/AboutUs";
+import EditAbout from "./pages/EditAbout";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/add-store" element={<AddStore />} />
           <Route path="/store/:id" element={<StoreDetail />} />
           <Route path="/search" element={<ProductSearch />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/edit-about" element={<EditAbout />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

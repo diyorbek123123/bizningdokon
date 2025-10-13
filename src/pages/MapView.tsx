@@ -157,8 +157,21 @@ const MapView = () => {
   const getDirectionsUrl = (lat: number, lng: number) => {
     const dest = `${lat},${lng}`;
     const origin = userLocation ? `&origin=${userLocation[0]},${userLocation[1]}` : '';
-    // Prefer Google Maps universal link; iOS Safari will open app if installed
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}${origin}&travelmode=driving`;
+  };
+
+  const getYandexDirectionsUrl = (lat: number, lng: number) => {
+    const dest = `${lat},${lng}`;
+    const origin = userLocation ? `${userLocation[0]},${userLocation[1]}` : '';
+    const rtext = origin ? `${origin}~${dest}` : `~${dest}`;
+    return `https://yandex.com/maps/?rtext=${encodeURIComponent(rtext)}&rtt=auto`;
+  };
+
+  const getOsmDirectionsUrl = (lat: number, lng: number) => {
+    if (userLocation) {
+      return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${userLocation[0]},${userLocation[1]};${lat},${lng}`;
+    }
+    return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
   };
 
   const query = productSearch.trim().toLowerCase();
@@ -313,15 +326,35 @@ const MapView = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-4">
-                  <Button variant="default" className="flex-1" asChild>
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  <Button variant="default" className="flex-1 min-w-[180px]" asChild>
                     <a
                       href={getDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       <NavigationIcon className="h-4 w-4 mr-2" />
-                      {t('map.directions', { defaultValue: 'Get Directions' })}
+                      Google Maps
+                    </a>
+                  </Button>
+                  <Button variant="secondary" className="flex-1 min-w-[180px]" asChild>
+                    <a
+                      href={getYandexDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <NavigationIcon className="h-4 w-4 mr-2" />
+                      Yandex Maps
+                    </a>
+                  </Button>
+                  <Button variant="outline" className="flex-1 min-w-[180px]" asChild>
+                    <a
+                      href={getOsmDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <NavigationIcon className="h-4 w-4 mr-2" />
+                      OpenStreetMap
                     </a>
                   </Button>
                   <Button

@@ -222,10 +222,13 @@ const OwnerAdmin = () => {
                     <Card key={owner.id} className="p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{owner.full_name || owner.email}</h3>
-                          <p className="text-sm text-muted-foreground">{owner.email}</p>
+                          <h3 className="font-semibold text-lg">{owner.full_name || 'No Name'}</h3>
+                          <p className="text-sm text-muted-foreground">Email: {owner.email}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             Role: <span className="capitalize">{owner.role}</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            User ID: {owner.id}
                           </p>
                           
                           {owner.stores.length > 0 ? (

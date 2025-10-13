@@ -124,7 +124,7 @@ export const Navigation = () => {
               </Button>
             )}
 
-            {(userRole === 'store_owner' || userRole === 'admin') && (
+            {userRole === 'store_owner' && (
               <Button asChild variant={isActive('/dashboard') ? 'default' : 'ghost'} size="sm">
                 <Link to="/dashboard" className="gap-2">
                   <LayoutDashboard className="h-4 w-4" />

@@ -66,8 +66,10 @@ const ProductSearch = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchQuery.trim()) {
-        setSearchParams({ q: searchQuery });
+      if (searchQuery.trim() || category) {
+        if (searchQuery.trim()) {
+          setSearchParams({ q: searchQuery });
+        }
         searchProducts(searchQuery);
       } else {
         setProducts([]);
@@ -90,8 +92,6 @@ const ProductSearch = () => {
   };
 
   const searchProducts = async (query: string) => {
-    if (!query.trim()) return;
-    
     setLoading(true);
     try {
       let queryBuilder = supabase
@@ -111,9 +111,14 @@ const ProductSearch = () => {
             latitude,
             longitude
           )
-        `)
-        .ilike('name', `%${query}%`);
+        `);
 
+      // Apply search query filter if exists
+      if (query.trim()) {
+        queryBuilder = queryBuilder.ilike('name', `%${query}%`);
+      }
+
+      // Apply category filter if selected
       if (category) {
         queryBuilder = queryBuilder.eq('category', category as any);
       }
@@ -235,10 +240,14 @@ const ProductSearch = () => {
                 <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
               ))}
             </div>
-          ) : products.length === 0 && searchQuery ? (
+          ) : products.length === 0 && (searchQuery || category) ? (
             <Card className="p-12 text-center">
               <p className="text-muted-foreground">
-                No products found for "{searchQuery}"
+                {searchQuery && category 
+                  ? `No products found for "${searchQuery}" in selected category`
+                  : searchQuery 
+                  ? `No products found for "${searchQuery}"`
+                  : 'No products found in selected category'}
               </p>
             </Card>
           ) : (

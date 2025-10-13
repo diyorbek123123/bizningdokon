@@ -297,21 +297,9 @@ const MapView = () => {
         <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col z-[9999]">
           {selectedStore && (
             <>
-              {selectedStore.photo_url && (
-                <div className="w-full h-48 overflow-hidden">
-                  <img
-                    src={selectedStore.photo_url}
-                    alt={selectedStore.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="p-4 border-b bg-background">
-                <h2 className="text-2xl font-bold mb-2">{selectedStore.name}</h2>
-                {selectedStore.description && (
-                  <p className="text-sm text-muted-foreground mb-3">{selectedStore.description}</p>
-                )}
+              {/* Sticky Header - Store Name & Contact */}
+              <div className="sticky top-0 z-10 p-4 border-b bg-background shadow-sm">
+                <h2 className="text-2xl font-bold mb-3">{selectedStore.name}</h2>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
@@ -325,90 +313,107 @@ const MapView = () => {
                     </a>
                   </div>
                 </div>
-
-                <div className="flex gap-2 mt-4 flex-wrap">
-                  <Button variant="default" className="flex-1 min-w-[180px]" asChild>
-                    <a
-                      href={getDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <NavigationIcon className="h-4 w-4 mr-2" />
-                      Google Maps
-                    </a>
-                  </Button>
-                  <Button variant="secondary" className="flex-1 min-w-[180px]" asChild>
-                    <a
-                      href={getYandexDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <NavigationIcon className="h-4 w-4 mr-2" />
-                      Yandex Maps
-                    </a>
-                  </Button>
-                  <Button variant="outline" className="flex-1 min-w-[180px]" asChild>
-                    <a
-                      href={getOsmDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <NavigationIcon className="h-4 w-4 mr-2" />
-                      OpenStreetMap
-                    </a>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(`/store/${selectedStore.id}`)}
-                  >
-                    {t('map.viewStore', { defaultValue: 'View Store' })}
-                  </Button>
-                </div>
               </div>
 
-              <div className="flex-1 overflow-hidden flex flex-col p-4">
-                <div className="mb-3">
-                  <h3 className="text-lg font-semibold mb-2">{t('map.products', { defaultValue: 'Products' })}</h3>
-                  <Input
-                    placeholder={t('map.searchProducts', { defaultValue: 'Search products...' })}
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
-                <ScrollArea className="flex-1">
-                  {loadingProducts ? (
-                    <div className="text-sm text-muted-foreground p-4">{t('common.loading', { defaultValue: 'Loading...' })}</div>
-                  ) : filteredProducts.length === 0 ? (
-                    <div className="text-sm text-muted-foreground p-4">
-                      {productSearch
-                        ? t('map.noSearchResults', { defaultValue: 'No products found' })
-                        : t('map.noProducts', { defaultValue: 'No products available' })}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
-                      {filteredProducts.map((p) => (
-                        <Card key={p.id} className="bg-card border shadow-sm hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1">
-                                <div className="font-medium text-base mb-1">{p.name}</div>
-                                {p.description && (
-                                  <div className="text-sm text-muted-foreground line-clamp-2">{p.description}</div>
-                                )}
-                              </div>
-                              <div className="text-base font-bold text-primary whitespace-nowrap">
-                                ${typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1">
+                <div className="flex flex-col">
+                  {selectedStore.photo_url && (
+                    <div className="w-full h-48 overflow-hidden">
+                      <img
+                        src={selectedStore.photo_url}
+                        alt={selectedStore.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   )}
-                </ScrollArea>
-              </div>
+                  
+                  <div className="p-4">
+                    {selectedStore.description && (
+                      <p className="text-sm text-muted-foreground mb-4">{selectedStore.description}</p>
+                    )}
+
+                    <div className="flex gap-2 mb-6 flex-wrap">
+                      <Button variant="default" className="flex-1 min-w-[180px]" asChild>
+                        <a
+                          href={getDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <NavigationIcon className="h-4 w-4 mr-2" />
+                          Google Maps
+                        </a>
+                      </Button>
+                      <Button variant="secondary" className="flex-1 min-w-[180px]" asChild>
+                        <a
+                          href={getYandexDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <NavigationIcon className="h-4 w-4 mr-2" />
+                          Yandex Maps
+                        </a>
+                      </Button>
+                      <Button variant="outline" className="flex-1 min-w-[180px]" asChild>
+                        <a
+                          href={getOsmDirectionsUrl(selectedStore.latitude, selectedStore.longitude)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <NavigationIcon className="h-4 w-4 mr-2" />
+                          OpenStreetMap
+                        </a>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(`/store/${selectedStore.id}`)}
+                      >
+                        {t('map.viewStore', { defaultValue: 'View Store' })}
+                      </Button>
+                    </div>
+
+                    <div className="mb-3">
+                      <h3 className="text-lg font-semibold mb-2">{t('map.products', { defaultValue: 'Products' })}</h3>
+                      <Input
+                        placeholder={t('map.searchProducts', { defaultValue: 'Search products...' })}
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {loadingProducts ? (
+                      <div className="text-sm text-muted-foreground p-4">{t('common.loading', { defaultValue: 'Loading...' })}</div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="text-sm text-muted-foreground p-4">
+                        {productSearch
+                          ? t('map.noSearchResults', { defaultValue: 'No products found' })
+                          : t('map.noProducts', { defaultValue: 'No products available' })}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+                        {filteredProducts.map((p) => (
+                          <Card key={p.id} className="bg-card border shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                  <div className="font-medium text-base mb-1">{p.name}</div>
+                                  {p.description && (
+                                    <div className="text-sm text-muted-foreground line-clamp-2">{p.description}</div>
+                                  )}
+                                </div>
+                                <div className="text-base font-bold text-primary whitespace-nowrap">
+                                  ${typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </ScrollArea>
             </>
           )}
         </SheetContent>

@@ -46,6 +46,9 @@ const Dashboard = () => {
   const [createStoreDialogOpen, setCreateStoreDialogOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState({ lat: 41.2995, lng: 69.2401 });
   const [storePhotoFile, setStorePhotoFile] = useState<File | null>(null);
+  const [editProductDialogOpen, setEditProductDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -183,6 +186,66 @@ const Dashboard = () => {
     } catch (error: any) {
       toast({
         title: 'Error adding product',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const price = parseFloat(formData.get('price') as string);
+    const description = formData.get('description') as string;
+
+    try {
+      let image_url = editingProduct.image_url;
+
+      // Upload new image if selected
+      if (editImageFile) {
+        const fileExt = editImageFile.name.split('.').pop();
+        const fileName = `${editingProduct.id}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, editImageFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+        
+        image_url = urlData.publicUrl;
+      }
+
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name,
+          price,
+          description: description || null,
+          image_url,
+        })
+        .eq('id', editingProduct.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Product updated successfully' });
+      setEditProductDialogOpen(false);
+      setEditingProduct(null);
+      setEditImageFile(null);
+      
+      if (store) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) fetchStoreData(user.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error updating product',
         description: error.message,
         variant: 'destructive',
       });
@@ -652,14 +715,27 @@ const Dashboard = () => {
                             {product.description}
                           </p>
                         )}
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => deleteProduct(product.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setEditProductDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deleteProduct(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -668,6 +744,60 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Product Dialog */}
+        <Dialog open={editProductDialogOpen} onOpenChange={setEditProductDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={updateProduct} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Product Name</Label>
+                <Input 
+                  id="edit-name" 
+                  name="name" 
+                  defaultValue={editingProduct?.name}
+                  required 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-price">Price (UZS)</Label>
+                <Input
+                  id="edit-price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  defaultValue={editingProduct?.price}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea 
+                  id="edit-description" 
+                  name="description" 
+                  defaultValue={editingProduct?.description || ''}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-image">Update Product Image (Optional)</Label>
+                <Input
+                  id="edit-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditImageFile(e.target.files?.[0] || null)}
+                />
+                {editingProduct?.image_url && (
+                  <p className="text-xs text-muted-foreground mt-1">Current image will be kept if no new image is uploaded</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full">
+                Save Changes
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

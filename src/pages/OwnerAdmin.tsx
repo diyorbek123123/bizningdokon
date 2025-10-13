@@ -70,32 +70,40 @@ const OwnerAdmin = () => {
 
   const fetchData = async () => {
     try {
+      console.log('[OwnerAdmin] fetchData start');
       // Try via secure backend function first
-      const { data: ownersResp } = await supabase.functions.invoke('list-store-owners');
+      const { data: ownersResp, error: fnErr } = await supabase.functions.invoke('list-store-owners');
+      if (fnErr) console.warn('[OwnerAdmin] function error', fnErr);
 
       let ownersData = ownersResp?.owners as any[] | undefined;
+      console.log('[OwnerAdmin] function owners', ownersData?.length);
 
-      // Fallback to direct queries if the function isn't available
+      // Fallback to direct queries if the function isn't available or returned empty
       if (!ownersData || ownersData.length === 0) {
-        const { data: roles } = await supabase
+        const { data: roles, error: rolesErr } = await supabase
           .from('user_roles')
           .select('user_id')
           .eq('role', 'store_owner');
+        if (rolesErr) console.warn('[OwnerAdmin] rolesErr', rolesErr);
 
         const ownerIds = (roles || []).map((r: any) => r.user_id);
+        console.log('[OwnerAdmin] ownerIds', ownerIds);
 
         if (ownerIds.length) {
-          const [{ data: profiles }, { data: storesByOwner }] = await Promise.all([
+          const [profilesRes, storesRes] = await Promise.all([
             supabase.from('profiles').select('id, email, full_name, created_at').in('id', ownerIds),
             supabase.from('stores').select('id, name, owner_id').in('owner_id', ownerIds),
           ]);
 
-          ownersData = (profiles || []).map((p: any) => ({
+          const profiles = profilesRes.data || [];
+          const storesByOwner = storesRes.data || [];
+
+          ownersData = profiles.map((p: any) => ({
             id: p.id,
             email: p.email,
             full_name: p.full_name,
             created_at: p.created_at,
-            stores: (storesByOwner || [])
+            stores: storesByOwner
               .filter((s: any) => s.owner_id === p.id)
               .map((s: any) => ({ id: s.id, name: s.name })),
           }));
@@ -109,6 +117,7 @@ const OwnerAdmin = () => {
       setStores(storesData || []);
 
       setOwners((ownersData || []).map((o: any) => ({ ...o, role: 'store_owner' })));
+      console.log('[OwnerAdmin] owners final', (ownersData || []).length);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({

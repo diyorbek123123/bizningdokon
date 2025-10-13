@@ -41,6 +41,7 @@ const MapView = () => {
   const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -48,13 +49,14 @@ const MapView = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string>(() => localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
   const [tokenInput, setTokenInput] = useState<string>(localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStores();
   }, []);
 
   useEffect(() => {
-    if (!mapContainer.current || stores.length === 0) return;
+    if (!mapContainer.current) return;
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -139,7 +141,7 @@ const MapView = () => {
       window.removeEventListener('resize', onResize);
       map.current?.remove();
     };
-  }, [stores, navigate, mapboxToken, t]);
+  }, [mapboxToken, t]);
 
   const fetchStores = async () => {
     try {
@@ -195,6 +197,41 @@ const MapView = () => {
     }
   };
 
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Clear old markers
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (!stores || stores.length === 0) return;
+
+    stores.forEach((store) => {
+      const el = document.createElement('button');
+      el.className = 'group relative -translate-y-2 rounded-full bg-primary text-primary-foreground shadow-md px-3 py-2 text-xs font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring';
+      el.setAttribute('aria-label', `${store.name}`);
+      el.innerText = t('map.shop', { defaultValue: 'Shop' });
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([store.longitude, store.latitude])
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+
+      el.addEventListener('click', () => {
+        setSelectedStore(store);
+        setIsSheetOpen(true);
+        fetchProductsForStore(store.id);
+      });
+    });
+
+    const bounds = new mapboxgl.LngLatBounds();
+    stores.forEach((s) => bounds.extend([s.longitude, s.latitude]));
+    if (!bounds.isEmpty()) {
+      map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+    }
+  }, [stores, t]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -227,8 +264,19 @@ const MapView = () => {
 
           <div
             ref={mapContainer}
-            className="w-full h-[calc(100vh-280px)] rounded-lg shadow-lg border"
-          ></div>
+            className="w-full h-[calc(100vh-280px)] rounded-lg shadow-lg border relative"
+          >
+            {mapError && (
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center text-center p-6">
+                <div>
+                  <p className="text-sm text-muted-foreground">{mapError}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {t('map.tokenHint', { defaultValue: 'If this persists, save a different Mapbox public token above or allow this domain in your Mapbox token settings.' })}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

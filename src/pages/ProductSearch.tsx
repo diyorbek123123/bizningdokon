@@ -154,10 +154,15 @@ const ProductSearch = () => {
   };
 
   const sortedProducts = [...products].sort((a, b) => {
+    // First, sort alphabetically by name
+    const nameCompare = a.name.localeCompare(b.name);
+    
+    // Then apply the selected sorting
     if (sortBy === 'price') {
-      return a.price - b.price;
+      return a.price === b.price ? nameCompare : a.price - b.price;
     } else {
-      return (a.distance || 0) - (b.distance || 0);
+      const distanceCompare = (a.distance || 0) - (b.distance || 0);
+      return distanceCompare === 0 ? nameCompare : distanceCompare;
     }
   });
 

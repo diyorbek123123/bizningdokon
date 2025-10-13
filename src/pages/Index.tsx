@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { StoreCard } from '@/components/StoreCard';
-import { StoreFilters } from '@/components/StoreFilters';
+
 import { Input } from '@/components/ui/input';
 import { Search, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,8 +46,6 @@ const Index = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('name');
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -101,8 +99,7 @@ const Index = () => {
       const matchesSearch = store.name.toLowerCase().includes(query) ||
         store.description?.toLowerCase().includes(query) ||
         store.address.toLowerCase().includes(query);
-      const matchesCategory = !category || store.category === category;
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     });
 
     const storesWithDistance = filtered.map(store => ({
@@ -112,22 +109,12 @@ const Index = () => {
         : null
     }));
 
-    switch (sortBy) {
-      case 'distance':
-        return storesWithDistance.sort((a, b) => {
-          if (a.distance === null) return 1;
-          if (b.distance === null) return -1;
-          return a.distance - b.distance;
-        });
-      case 'rating':
-        return storesWithDistance.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      case 'newest':
-        return storesWithDistance.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      default:
-        return storesWithDistance.sort((a, b) => a.name.localeCompare(b.name));
-    }
+    // Sort by distance by default
+    return storesWithDistance.sort((a, b) => {
+      if (a.distance === null) return 1;
+      if (b.distance === null) return -1;
+      return a.distance - b.distance;
+    });
   };
 
   const filteredStores = getFilteredAndSortedStores();
@@ -173,13 +160,6 @@ const Index = () => {
       </section>
 
       <section className="container mx-auto px-4 py-8">
-        <StoreFilters
-          selectedCategory={category}
-          selectedSort={sortBy}
-          onCategoryChange={setCategory}
-          onSortChange={setSortBy}
-        />
-
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="all">All Stores ({filteredStores.length})</TabsTrigger>
@@ -201,7 +181,7 @@ const Index = () => {
             ) : filteredStores.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
-                  {searchQuery || category ? 'No stores found matching your criteria' : 'No stores yet'}
+                  {searchQuery ? 'No stores found matching your criteria' : 'No stores yet'}
                 </p>
               </div>
             ) : (

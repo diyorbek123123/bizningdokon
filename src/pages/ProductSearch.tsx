@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Search, MapPin, Navigation as NavigationIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { StoreFilters } from '@/components/StoreFilters';
 
 interface ProductWithStore {
   id: string;
   name: string;
   price: number;
   description: string | null;
+  category: string | null;
   store_id: string;
   store: {
     id: string;
@@ -33,7 +35,8 @@ const ProductSearch = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [products, setProducts] = useState<ProductWithStore[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'price' | 'distance'>('name');
+  const [sortBy, setSortBy] = useState('name');
+  const [category, setCategory] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
 
   useEffect(() => {
@@ -72,7 +75,7 @@ const ProductSearch = () => {
     }, 300); // Debounce for 300ms
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, category]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of Earth in km
@@ -91,13 +94,14 @@ const ProductSearch = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let queryBuilder = supabase
         .from('products')
         .select(`
           id,
           name,
           price,
           description,
+          category,
           store_id,
           stores!inner (
             id,
@@ -110,6 +114,12 @@ const ProductSearch = () => {
         `)
         .ilike('name', `%${query}%`);
 
+      if (category) {
+        queryBuilder = queryBuilder.eq('category', category as any);
+      }
+
+      const { data, error } = await queryBuilder;
+
       if (error) throw error;
 
       // Transform data and calculate distances
@@ -119,6 +129,7 @@ const ProductSearch = () => {
           name: item.name,
           price: item.price,
           description: item.description,
+          category: item.category || null,
           store_id: item.store_id,
           store: item.stores,
         };
@@ -171,7 +182,7 @@ const ProductSearch = () => {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Search Products</h1>
 
-          <form onSubmit={handleSearch} className="mb-8">
+          <form onSubmit={handleSearch} className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -184,17 +195,26 @@ const ProductSearch = () => {
             </div>
           </form>
 
+          <StoreFilters
+            selectedCategory={category}
+            selectedSort={sortBy}
+            onCategoryChange={setCategory}
+            onSortChange={(value) => setSortBy(value)}
+          />
+
           {products.length > 0 && (
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 flex-wrap">
               <Button
                 variant={sortBy === 'name' ? 'default' : 'outline'}
                 onClick={() => setSortBy('name')}
+                size="sm"
               >
                 Sort Alphabetically
               </Button>
               <Button
                 variant={sortBy === 'price' ? 'default' : 'outline'}
                 onClick={() => setSortBy('price')}
+                size="sm"
               >
                 Sort by Price
               </Button>
@@ -202,6 +222,7 @@ const ProductSearch = () => {
                 variant={sortBy === 'distance' ? 'default' : 'outline'}
                 onClick={() => setSortBy('distance')}
                 disabled={!userLocation}
+                size="sm"
               >
                 Sort by Distance
               </Button>

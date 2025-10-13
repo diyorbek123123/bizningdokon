@@ -14,14 +14,14 @@ interface StoreFiltersProps {
 }
 
 const categories = [
-  { value: 'grocery', label: 'Grocery' },
+  { value: 'food', label: 'Food' },
   { value: 'electronics', label: 'Electronics' },
   { value: 'clothing', label: 'Clothing' },
-  { value: 'restaurant', label: 'Restaurant' },
-  { value: 'pharmacy', label: 'Pharmacy' },
-  { value: 'hardware', label: 'Hardware' },
-  { value: 'bookstore', label: 'Bookstore' },
+  { value: 'health', label: 'Health' },
+  { value: 'home', label: 'Home' },
   { value: 'sports', label: 'Sports' },
+  { value: 'books', label: 'Books' },
+  { value: 'toys', label: 'Toys' },
   { value: 'beauty', label: 'Beauty' },
   { value: 'other', label: 'Other' },
 ];

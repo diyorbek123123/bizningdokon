@@ -167,11 +167,23 @@ export const StoreCard = ({
           </div>
         </div>
 
-        <Button asChild className="w-full">
-          <Link to={`/store/${id}`}>
-            {t('store.products')}
-          </Link>
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button asChild variant="default">
+            <Link to={`/store/${id}`}>
+              {t('store.products')}
+            </Link>
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => {
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+              window.open(url, '_blank');
+            }}
+          >
+            <Navigation2 className="mr-2 h-4 w-4" />
+            Direction
+          </Button>
+        </div>
       </div>
     </Card>
   );

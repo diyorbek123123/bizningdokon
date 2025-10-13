@@ -33,6 +33,7 @@ interface Product {
   name: string;
   price: number;
   description: string | null;
+  category: string | null;
   image_url: string | null;
   store_id: string;
 }
@@ -160,6 +161,7 @@ const Dashboard = () => {
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const description = formData.get('description') as string;
+    const category = formData.get('category') as any;
 
     try {
       const { data, error } = await supabase
@@ -168,6 +170,7 @@ const Dashboard = () => {
           name,
           price,
           description,
+          category: category || null,
           store_id: store.id,
         })
         .select()
@@ -205,6 +208,7 @@ const Dashboard = () => {
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const description = formData.get('description') as string;
+    const category = formData.get('category') as any;
 
     try {
       let image_url = editingProduct.image_url;
@@ -233,6 +237,7 @@ const Dashboard = () => {
           name,
           price,
           description: description || null,
+          category: category || null,
           image_url,
         })
         .eq('id', editingProduct.id);
@@ -723,6 +728,27 @@ const Dashboard = () => {
                         />
                       </div>
                       <div>
+                        <Label htmlFor="category">Category</Label>
+                        <select
+                          id="category"
+                          name="category"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          required
+                        >
+                          <option value="">Select a category</option>
+                          <option value="food">Food</option>
+                          <option value="electronics">Electronics</option>
+                          <option value="clothing">Clothing</option>
+                          <option value="health">Health</option>
+                          <option value="home">Home</option>
+                          <option value="sports">Sports</option>
+                          <option value="books">Books</option>
+                          <option value="toys">Toys</option>
+                          <option value="beauty">Beauty</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" name="description" />
                       </div>
@@ -828,6 +854,28 @@ const Dashboard = () => {
                   defaultValue={editingProduct?.price}
                   required
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-category">Category</Label>
+                <select
+                  id="edit-category"
+                  name="category"
+                  defaultValue={(editingProduct as any)?.category || ''}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  <option value="food">Food</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="clothing">Clothing</option>
+                  <option value="health">Health</option>
+                  <option value="home">Home</option>
+                  <option value="sports">Sports</option>
+                  <option value="books">Books</option>
+                  <option value="toys">Toys</option>
+                  <option value="beauty">Beauty</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="edit-description">Description</Label>

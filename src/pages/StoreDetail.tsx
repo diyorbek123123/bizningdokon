@@ -27,6 +27,7 @@ interface Product {
   name: string;
   price: number;
   description: string | null;
+  image_url: string | null;
 }
 
 const StoreDetail = () => {
@@ -201,14 +202,25 @@ const StoreDetail = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="p-4 space-y-2">
-                  <h3 className="font-bold text-lg">{product.name}</h3>
-                  {product.description && (
-                    <p className="text-sm text-muted-foreground">{product.description}</p>
+                <Card key={product.id} className="overflow-hidden">
+                  {product.image_url && (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   )}
-                  <p className="text-xl font-bold text-primary">
-                    {product.price.toLocaleString()} UZS
-                  </p>
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-bold text-lg">{product.name}</h3>
+                    {product.description && (
+                      <p className="text-sm text-muted-foreground">{product.description}</p>
+                    )}
+                    <p className="text-xl font-bold text-primary">
+                      {product.price.toLocaleString()} UZS
+                    </p>
+                  </div>
                 </Card>
               ))}
             </div>

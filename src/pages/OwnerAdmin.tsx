@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Store, Users, Package, Eye, Trash2, UserCog } from 'lucide-react';
+import { Store, Users, Package, Eye, Trash2, UserCog, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface Profile {
   id: string;
@@ -29,6 +30,7 @@ const OwnerAdmin = () => {
   const [owners, setOwners] = useState<StoreOwner[]>([]);
   const [stores, setStores] = useState<any[]>([]);
   const [selectedOwner, setSelectedOwner] = useState<StoreOwner | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     checkAdmin();
@@ -134,6 +136,58 @@ const OwnerAdmin = () => {
     }
   };
 
+  const createOwnerAccount = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const fullName = formData.get('fullName') as string;
+
+    try {
+      // Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error('Failed to create user account');
+      }
+
+      // Assign store_owner role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role: 'store_owner'
+        });
+
+      if (roleError) throw roleError;
+
+      toast({ 
+        title: 'Store owner account created',
+        description: `Email: ${email}, Password: ${password}`
+      });
+      
+      setCreateDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: 'Error creating account',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const deleteStore = async (storeId: string) => {
     if (!confirm('Are you sure you want to delete this store?')) return;
 
@@ -206,9 +260,62 @@ const OwnerAdmin = () => {
           {/* Store Owners Management */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCog className="h-5 w-5" />
-                Store Owners & Their Stores
+              <CardTitle className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2">
+                  <UserCog className="h-5 w-5" />
+                  Store Owners & Their Stores
+                </div>
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Owner Account
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Store Owner Account</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={createOwnerAccount} className="space-y-4">
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email" 
+                          name="email" 
+                          type="email" 
+                          required 
+                          placeholder="owner@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                          id="password" 
+                          name="password" 
+                          type="text" 
+                          required 
+                          placeholder="Create a password"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Save this password - you'll need to share it with the owner
+                        </p>
+                      </div>
+                      <div>
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input 
+                          id="fullName" 
+                          name="fullName" 
+                          type="text" 
+                          required 
+                          placeholder="Owner's full name"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Create Account
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>

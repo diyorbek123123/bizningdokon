@@ -124,21 +124,18 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <section className="relative h-[400px] overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="Marketplace" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80" />
-        </div>
+      <section className="relative h-[450px] overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-primary">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNDAgMCBMIDAgMCAwIDQwIiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
         
         <div className="relative container mx-auto px-4 h-full flex flex-col items-center justify-center text-center text-white">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
-            {t('hero.title')}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 animate-fade-in">
+            BizningDo'kon
           </h1>
-          <p className="text-lg md:text-xl mb-8 max-w-2xl opacity-90">
-            {t('hero.subtitle')}
+          <p className="text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl font-medium">
+            Mahalliy do'konlar va mahsulotlarni toping
           </p>
 
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-2xl">
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
@@ -146,13 +143,13 @@ const Index = () => {
               }}
               className="relative"
             >
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={t('hero.search')}
+                placeholder="Mahsulot nomini kiriting..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-lg bg-background/95 backdrop-blur"
+                className="pl-12 pr-4 h-14 text-base bg-white rounded-full border-0 shadow-lg"
               />
             </form>
           </div>
@@ -161,12 +158,14 @@ const Index = () => {
 
       <section className="container mx-auto px-4 py-8">
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="all">All Stores ({filteredStores.length})</TabsTrigger>
+          <TabsList className="mb-8 bg-muted/50 p-1">
+            <TabsTrigger value="all" className="rounded-lg px-6 py-2">
+              Barcha do'konlar ({filteredStores.length})
+            </TabsTrigger>
             {user && (
-              <TabsTrigger value="favorites" className="gap-2">
+              <TabsTrigger value="favorites" className="gap-2 rounded-lg px-6 py-2">
                 <Heart className="h-4 w-4" />
-                Favorites ({favoriteStores.length})
+                Sevimlilar ({favoriteStores.length})
               </TabsTrigger>
             )}
           </TabsList>

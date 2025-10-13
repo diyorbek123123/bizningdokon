@@ -6,10 +6,15 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Navigation } from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-// You'll need to add your Mapbox token here
-// Get one at https://account.mapbox.com/access-tokens/
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNseDJ3NzQxMjBhMjYya3M2ZGNyODcxbmcifQ.9R0I_w8YE3B-4VQK5H8Z7g';
+// Mapbox token handling: prefer user-provided token, fallback to demo
+// Add your token in Settings -> Backend -> Secrets as MAPBOX_PUBLIC_TOKEN for production
+const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNseDJ3NzQxMjBhMjYya3M2ZGNyODcxbmcifQ.9R0I_w8YE3B-4VQK5H8Z7g';
 
 interface Store {
   id: string;
@@ -22,6 +27,14 @@ interface Store {
   photo_url: string | null;
 }
 
+interface Product {
+  id: string;
+  store_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+}
+
 const MapView = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -29,6 +42,12 @@ const MapView = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string>(() => localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
+  const [tokenInput, setTokenInput] = useState<string>(localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
 
   useEffect(() => {
     fetchStores();
@@ -37,12 +56,12 @@ const MapView = () => {
   useEffect(() => {
     if (!mapContainer.current || stores.length === 0) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    mapboxgl.accessToken = mapboxToken;
 
     // Initialize map centered on Uzbekistan
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/light-v11',
       center: [64.5853, 41.3775], // Tashkent, Uzbekistan
       zoom: 6,
     });
@@ -69,29 +88,19 @@ const MapView = () => {
 
     // Add markers for each store
     stores.forEach((store) => {
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `
-          <div class="p-2">
-            <h3 class="font-bold text-lg mb-1">${store.name}</h3>
-            <p class="text-sm text-gray-600 mb-2">${store.address}</p>
-            <p class="text-sm mb-2">${store.phone}</p>
-            <button 
-              onclick="window.location.href='/store/${store.id}'"
-              class="w-full px-3 py-1 bg-primary text-white rounded hover:bg-primary/90 text-sm"
-            >
-              View Details
-            </button>
-          </div>
-        `
-      );
+      const el = document.createElement('button');
+      el.className = 'group relative -translate-y-2 rounded-full bg-primary text-primary-foreground shadow-md px-3 py-2 text-xs font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring';
+      el.setAttribute('aria-label', `${store.name}`);
+      el.innerText = t('map.shop', { defaultValue: 'Shop' });
 
-      const marker = new mapboxgl.Marker({ color: '#3b82f6' })
+      new mapboxgl.Marker({ element: el })
         .setLngLat([store.longitude, store.latitude])
-        .setPopup(popup)
         .addTo(map.current!);
 
-      marker.getElement().addEventListener('click', () => {
-        marker.togglePopup();
+      el.addEventListener('click', () => {
+        setSelectedStore(store);
+        setIsSheetOpen(true);
+        fetchProductsForStore(store.id);
       });
     });
 
@@ -107,7 +116,7 @@ const MapView = () => {
     return () => {
       map.current?.remove();
     };
-  }, [stores, navigate]);
+  }, [stores, navigate, mapboxToken, t]);
 
   const fetchStores = async () => {
     try {

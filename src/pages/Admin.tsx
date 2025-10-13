@@ -352,42 +352,6 @@ const Admin = () => {
                     </p>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-medium">Latitude (or use map above)</label>
-                      <Input
-                        type="number"
-                        step="0.000001"
-                        value={selectedStore.latitude}
-                        onChange={(e) => {
-                          const newLat = parseFloat(e.target.value) || 0;
-                          setSelectedStore({ ...selectedStore, latitude: newLat });
-                          if (adminMarkerRef.current) {
-                            adminMarkerRef.current.setLatLng([newLat, selectedStore.longitude]);
-                            adminMapInstanceRef.current?.setView([newLat, selectedStore.longitude]);
-                          }
-                        }}
-                        placeholder="41.3775"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Longitude (or use map above)</label>
-                      <Input
-                        type="number"
-                        step="0.000001"
-                        value={selectedStore.longitude}
-                        onChange={(e) => {
-                          const newLng = parseFloat(e.target.value) || 0;
-                          setSelectedStore({ ...selectedStore, longitude: newLng });
-                          if (adminMarkerRef.current) {
-                            adminMarkerRef.current.setLatLng([selectedStore.latitude, newLng]);
-                            adminMapInstanceRef.current?.setView([selectedStore.latitude, newLng]);
-                          }
-                        }}
-                        placeholder="64.5853"
-                      />
-                    </div>
-                  </div>
 
                   <div>
                     <label className="text-sm font-medium">Photo URL</label>

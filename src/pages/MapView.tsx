@@ -158,10 +158,10 @@ const MapView = () => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+  const query = productSearch.trim().toLowerCase();
+  const filteredProducts = query
+    ? products.filter((p) => p.name.toLowerCase().startsWith(query))
+    : products;
 
   // Initialize Leaflet map once
   useEffect(() => {

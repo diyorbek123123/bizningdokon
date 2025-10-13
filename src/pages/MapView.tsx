@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+// Removed react-leaflet usage
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Navigation } from '@/components/Navigation';
@@ -47,18 +47,7 @@ const customIcon = new L.DivIcon({
   iconAnchor: [15, 30],
 });
 
-const MapController = ({ stores }: { stores: Store[] }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (stores.length > 0) {
-      const bounds = L.latLngBounds(stores.map(s => [s.latitude, s.longitude]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-    }
-  }, [stores, map]);
-
-  return null;
-};
+// MapController removed - using imperative Leaflet API
 
 const MapView = () => {
   const { t } = useTranslation();
@@ -69,10 +58,13 @@ const MapView = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-
-  useEffect(() => {
-    fetchStores();
-  }, []);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+ 
+   useEffect(() => {
+     fetchStores();
+   }, []);
 
   const fetchStores = async () => {
     try {
@@ -121,7 +113,48 @@ const MapView = () => {
     fetchProductsForStore(store.id);
   };
 
-  return (
+  // Initialize Leaflet map once
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    mapRef.current = L.map(mapContainerRef.current).setView([41.3775, 64.5853], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(mapRef.current);
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markersLayerRef.current = null;
+    };
+  }, []);
+
+  // Update markers when stores change
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (markersLayerRef.current) {
+      markersLayerRef.current.clearLayers();
+    } else {
+      markersLayerRef.current = L.layerGroup().addTo(mapRef.current);
+    }
+
+    if (!stores || stores.length === 0) return;
+
+    const bounds = L.latLngBounds([]);
+
+    stores.forEach((store) => {
+      const marker = L.marker([store.latitude, store.longitude], { icon: customIcon }).on('click', () => handleMarkerClick(store));
+      marker.addTo(markersLayerRef.current!);
+      bounds.extend([store.latitude, store.longitude] as any);
+    });
+
+    if (bounds.isValid()) {
+      mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [stores]);
+
+   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
@@ -164,28 +197,7 @@ const MapView = () => {
         `}</style>
 
         <div className="w-full h-[calc(100vh-280px)] min-h-[300px] rounded-lg shadow-lg border overflow-hidden">
-          <MapContainer
-            center={[41.3775, 64.5853]}
-            zoom={6}
-            style={{ height: '100%', width: '100%' }}
-            scrollWheelZoom={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapController stores={stores} />
-            {stores.map((store) => (
-              <Marker
-                key={store.id}
-                position={[store.latitude, store.longitude]}
-                icon={customIcon}
-                eventHandlers={{
-                  click: () => handleMarkerClick(store),
-                }}
-              />
-            ))}
-          </MapContainer>
+          <div ref={mapContainerRef} className="w-full h-full" />
         </div>
       </div>
 

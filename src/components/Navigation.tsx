@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from './LanguageSelector';
+import { ThemeToggle } from './ThemeToggle';
 import { Store, MapPin, Plus, LogIn, LogOut, Search, Info, Edit } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -168,6 +169,7 @@ export const Navigation = () => {
               </Button>
             )}
 
+            <ThemeToggle />
             <LanguageSelector />
           </div>
         </div>

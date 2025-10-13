@@ -40,6 +40,7 @@ export type Database = {
       }
       products: {
         Row: {
+          category: Database["public"]["Enums"]["product_category"] | null
           created_at: string
           description: string | null
           id: string
@@ -49,6 +50,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["product_category"] | null
           created_at?: string
           description?: string | null
           id?: string
@@ -58,6 +60,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["product_category"] | null
           created_at?: string
           description?: string | null
           id?: string
@@ -76,50 +79,129 @@ export type Database = {
           },
         ]
       }
+      store_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          store_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          store_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          store_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string
+          category: Database["public"]["Enums"]["store_category"] | null
           close_time: string | null
           created_at: string
           description: string | null
           id: string
+          is_open: boolean | null
           latitude: number
           longitude: number
           name: string
           open_time: string | null
           phone: string
           photo_url: string | null
+          rating: number | null
+          review_count: number | null
           updated_at: string
         }
         Insert: {
           address: string
+          category?: Database["public"]["Enums"]["store_category"] | null
           close_time?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_open?: boolean | null
           latitude: number
           longitude: number
           name: string
           open_time?: string | null
           phone: string
           photo_url?: string | null
+          rating?: number | null
+          review_count?: number | null
           updated_at?: string
         }
         Update: {
           address?: string
+          category?: Database["public"]["Enums"]["store_category"] | null
           close_time?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_open?: boolean | null
           latitude?: number
           longitude?: number
           name?: string
           open_time?: string | null
           phone?: string
           photo_url?: string | null
+          rating?: number | null
+          review_count?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          store_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          store_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          store_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -157,6 +239,28 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      product_category:
+        | "food"
+        | "electronics"
+        | "clothing"
+        | "health"
+        | "home"
+        | "sports"
+        | "books"
+        | "toys"
+        | "beauty"
+        | "other"
+      store_category:
+        | "grocery"
+        | "electronics"
+        | "clothing"
+        | "restaurant"
+        | "pharmacy"
+        | "hardware"
+        | "bookstore"
+        | "sports"
+        | "beauty"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -285,6 +389,30 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      product_category: [
+        "food",
+        "electronics",
+        "clothing",
+        "health",
+        "home",
+        "sports",
+        "books",
+        "toys",
+        "beauty",
+        "other",
+      ],
+      store_category: [
+        "grocery",
+        "electronics",
+        "clothing",
+        "restaurant",
+        "pharmacy",
+        "hardware",
+        "bookstore",
+        "sports",
+        "beauty",
+        "other",
+      ],
     },
   },
 } as const

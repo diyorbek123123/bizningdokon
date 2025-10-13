@@ -23,6 +23,9 @@ interface Store {
   is_open: boolean | null;
   open_time: string | null;
   close_time: string | null;
+  photo_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface Product {
@@ -49,6 +52,8 @@ const Dashboard = () => {
   const [editProductDialogOpen, setEditProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editStorePhotoFile, setEditStorePhotoFile] = useState<File | null>(null);
+  const [editStoreLocation, setEditStoreLocation] = useState({ lat: 41.2995, lng: 69.2401 });
 
   useEffect(() => {
     checkAuth();
@@ -286,6 +291,26 @@ const Dashboard = () => {
     const close_time = formData.get('close_time') as string;
 
     try {
+      let photo_url = store.photo_url;
+
+      // Upload new photo if selected
+      if (editStorePhotoFile) {
+        const fileExt = editStorePhotoFile.name.split('.').pop();
+        const fileName = `store-${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, editStorePhotoFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+        
+        photo_url = urlData.publicUrl;
+      }
+
       const { error } = await supabase
         .from('stores')
         .update({
@@ -295,14 +320,21 @@ const Dashboard = () => {
           description,
           open_time: open_time || null,
           close_time: close_time || null,
+          photo_url,
+          latitude: editStoreLocation.lat,
+          longitude: editStoreLocation.lng,
         })
         .eq('id', store.id);
 
       if (error) throw error;
 
       toast({ title: 'Store updated successfully' });
-      setStore({ ...store, name, address, phone, description });
       setEditDialogOpen(false);
+      setEditStorePhotoFile(null);
+      
+      // Refresh data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) fetchStoreData(user.id);
     } catch (error: any) {
       toast({
         title: 'Error updating store',
@@ -484,14 +516,19 @@ const Dashboard = () => {
                   {store.name}
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                  <Dialog open={editDialogOpen} onOpenChange={(open) => {
+                    setEditDialogOpen(open);
+                    if (open) {
+                      setEditStoreLocation({ lat: store.latitude as number, lng: store.longitude as number });
+                    }
+                  }}>
                     <DialogTrigger asChild>
                       <Button variant="outline">
                         <Edit className="h-4 w-4 mr-2" />
                         Edit Store
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Edit Store Details</DialogTitle>
                       </DialogHeader>
@@ -552,6 +589,26 @@ const Dashboard = () => {
                               defaultValue={store.close_time || ''}
                             />
                           </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-store-photo">Update Store Photo</Label>
+                          <Input
+                            id="edit-store-photo"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setEditStorePhotoFile(e.target.files?.[0] || null)}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Current photo will be kept if no new photo is uploaded
+                          </p>
+                        </div>
+                        <div>
+                          <Label>Update Store Location</Label>
+                          <MapPicker
+                            onLocationSelect={(lat, lng) => setEditStoreLocation({ lat, lng })}
+                            initialLat={editStoreLocation.lat}
+                            initialLng={editStoreLocation.lng}
+                          />
                         </div>
                         <Button type="submit" className="w-full">
                           Save Changes

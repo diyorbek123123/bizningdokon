@@ -272,13 +272,13 @@ const MapView = () => {
           }
         `}</style>
 
-        <div className="w-full h-[calc(100vh-240px)] min-h-[400px] rounded-lg shadow-lg border overflow-hidden relative">
+        <div className="w-full h-[calc(100vh-240px)] min-h-[400px] rounded-lg shadow-lg border overflow-hidden relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
         </div>
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
+        <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col z-[9999]">
           {selectedStore && (
             <>
               {selectedStore.photo_url && (

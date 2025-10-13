@@ -40,6 +40,8 @@ interface Product {
   name: string;
   description: string | null;
   price: number;
+  category: string | null;
+  image_url: string | null;
 }
 
 interface Owner {
@@ -66,7 +68,8 @@ const Admin = () => {
   const adminMarkerRef = useRef<L.Marker | null>(null);
   
   // New product form
-  const [newProduct, setNewProduct] = useState({ name: '', description: '', price: 0 });
+  const [newProduct, setNewProduct] = useState({ name: '', description: '', price: 0, category: '', image_url: '' });
+  const [newProductImage, setNewProductImage] = useState<File | null>(null);
 
   useEffect(() => {
     document.title = 'Admin — Full Management';
@@ -233,7 +236,8 @@ const Admin = () => {
     const { error } = await supabase.from('products').update({
       name: p.name.trim(),
       description: p.description?.trim() || null,
-      price: p.price
+      price: p.price,
+      category: p.category as any || null,
     }).eq('id', p.id);
 
     if (error) {
@@ -252,21 +256,49 @@ const Admin = () => {
       return;
     }
 
-    const { error } = await supabase.from('products').insert({
-      store_id: selectedStoreId,
-      name: newProduct.name.trim(),
-      description: newProduct.description.trim() || null,
-      price: newProduct.price,
-    });
-
-    if (error) {
-      toast({ title: 'Error', description: 'Failed to add product', variant: 'destructive' });
+    if (!newProduct.category) {
+      toast({ title: 'Validation', description: 'Please select a category', variant: 'destructive' });
       return;
     }
 
-    toast({ title: 'Success', description: 'Product added' });
-    setNewProduct({ name: '', description: '', price: 0 });
-    await loadProducts(selectedStoreId);
+    try {
+      const { data, error } = await supabase.from('products').insert({
+        store_id: selectedStoreId,
+        name: newProduct.name.trim(),
+        description: newProduct.description.trim() || null,
+        price: newProduct.price,
+        category: newProduct.category as any,
+      }).select().single();
+
+      if (error) throw error;
+
+      // Upload image if provided
+      if (newProductImage && data) {
+        const fileExt = newProductImage.name.split('.').pop();
+        const fileName = `${data.id}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, newProductImage);
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName);
+          
+          await supabase.from('products')
+            .update({ image_url: urlData.publicUrl })
+            .eq('id', data.id);
+        }
+      }
+
+      toast({ title: 'Success', description: 'Product added' });
+      setNewProduct({ name: '', description: '', price: 0, category: '', image_url: '' });
+      setNewProductImage(null);
+      await loadProducts(selectedStoreId);
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to add product', variant: 'destructive' });
+    }
   };
 
   const deleteProduct = async () => {
@@ -418,28 +450,68 @@ const Admin = () => {
                       <CardTitle>Add New Product</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid gap-4 sm:grid-cols-[1fr,2fr,120px,auto]">
-                        <Input
-                          placeholder="Product name *"
-                          value={newProduct.name}
-                          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Description (optional)"
-                          value={newProduct.description}
-                          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                        />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="Price *"
-                          value={newProduct.price}
-                          onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })}
-                        />
-                        <Button onClick={addProduct}>
+                      <div className="grid gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Product Name *</label>
+                            <Input
+                              placeholder="Enter product name"
+                              value={newProduct.name}
+                              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">Price (UZS) *</label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                              value={newProduct.price}
+                              onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Category *</label>
+                          <select
+                            value={newProduct.category}
+                            onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <option value="">Select category</option>
+                            <option value="food">Food</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="health">Health</option>
+                            <option value="home">Home</option>
+                            <option value="sports">Sports</option>
+                            <option value="books">Books</option>
+                            <option value="toys">Toys</option>
+                            <option value="beauty">Beauty</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Description (Optional)</label>
+                          <Textarea
+                            placeholder="Enter product description"
+                            value={newProduct.description}
+                            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Product Image (Optional)</label>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setNewProductImage(e.target.files?.[0] || null)}
+                          />
+                        </div>
+                        <Button onClick={addProduct} className="w-full sm:w-auto">
                           <Plus className="h-4 w-4 mr-2" />
-                          Add
+                          Add Product
                         </Button>
                       </div>
                     </CardContent>
@@ -461,71 +533,98 @@ const Admin = () => {
                           <p>No products yet. Add one above.</p>
                         </div>
                       ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Name</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead className="w-[120px]">Price</TableHead>
-                              <TableHead className="w-[160px]">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {products.map((prod, idx) => (
-                              <TableRow key={prod.id}>
-                                <TableCell>
-                                  <Input
-                                    value={prod.name}
-                                    onChange={(e) => {
-                                      const copy = [...products];
-                                      copy[idx] = { ...copy[idx], name: e.target.value };
-                                      setProducts(copy);
-                                    }}
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={prod.description || ''}
-                                    onChange={(e) => {
-                                      const copy = [...products];
-                                      copy[idx] = { ...copy[idx], description: e.target.value };
-                                      setProducts(copy);
-                                    }}
-                                    placeholder="Description"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={Number(prod.price).toString()}
-                                    onChange={(e) => {
-                                      const val = parseFloat(e.target.value);
-                                      const copy = [...products];
-                                      copy[idx] = { ...copy[idx], price: isNaN(val) ? 0 : val };
-                                      setProducts(copy);
-                                    }}
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2">
-                                    <Button size="sm" onClick={() => saveProduct(products[idx])}>
-                                      <Save className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => confirmDelete('product', prod.id)}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="min-w-[150px]">Name</TableHead>
+                                <TableHead className="min-w-[120px]">Category</TableHead>
+                                <TableHead className="min-w-[200px]">Description</TableHead>
+                                <TableHead className="min-w-[100px]">Price</TableHead>
+                                <TableHead className="min-w-[140px]">Actions</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {products.map((prod, idx) => (
+                                <TableRow key={prod.id}>
+                                  <TableCell>
+                                    <Input
+                                      value={prod.name}
+                                      onChange={(e) => {
+                                        const copy = [...products];
+                                        copy[idx] = { ...copy[idx], name: e.target.value };
+                                        setProducts(copy);
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <select
+                                      value={prod.category || ''}
+                                      onChange={(e) => {
+                                        const copy = [...products];
+                                        copy[idx] = { ...copy[idx], category: e.target.value };
+                                        setProducts(copy);
+                                      }}
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    >
+                                      <option value="">None</option>
+                                      <option value="food">Food</option>
+                                      <option value="electronics">Electronics</option>
+                                      <option value="clothing">Clothing</option>
+                                      <option value="health">Health</option>
+                                      <option value="home">Home</option>
+                                      <option value="sports">Sports</option>
+                                      <option value="books">Books</option>
+                                      <option value="toys">Toys</option>
+                                      <option value="beauty">Beauty</option>
+                                      <option value="other">Other</option>
+                                    </select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      value={prod.description || ''}
+                                      onChange={(e) => {
+                                        const copy = [...products];
+                                        copy[idx] = { ...copy[idx], description: e.target.value };
+                                        setProducts(copy);
+                                      }}
+                                      placeholder="Description"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={Number(prod.price).toString()}
+                                      onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        const copy = [...products];
+                                        copy[idx] = { ...copy[idx], price: isNaN(val) ? 0 : val };
+                                        setProducts(copy);
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" onClick={() => saveProduct(products[idx])} title="Save changes">
+                                        <Save className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => confirmDelete('product', prod.id)}
+                                        title="Delete product"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
                       )}
                     </CardContent>
                   </Card>

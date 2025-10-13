@@ -86,6 +86,7 @@ const MapView = () => {
   };
 
   const fetchProductsForStore = async (storeId: string) => {
+    console.log('Fetching products for store:', storeId);
     setLoadingProducts(true);
     try {
       const { data, error } = await supabase
@@ -93,6 +94,9 @@ const MapView = () => {
         .select('*')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false });
+      
+      console.log('Products fetch result:', { data, error });
+      
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
@@ -144,7 +148,13 @@ const MapView = () => {
     const bounds = L.latLngBounds([]);
 
     stores.forEach((store) => {
-      const marker = L.marker([store.latitude, store.longitude], { icon: customIcon }).on('click', () => handleMarkerClick(store));
+      const marker = L.marker([store.latitude, store.longitude], { icon: customIcon });
+      marker.on('click', () => {
+        console.log('Marker clicked for store:', store.id, store.name);
+        setSelectedStore(store);
+        setIsSheetOpen(true);
+        fetchProductsForStore(store.id);
+      });
       marker.addTo(markersLayerRef.current!);
       bounds.extend([store.latitude, store.longitude] as any);
     });

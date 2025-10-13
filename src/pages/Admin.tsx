@@ -42,6 +42,14 @@ interface Product {
   price: number;
 }
 
+interface Owner {
+  id: string;
+  email: string;
+  full_name: string;
+  created_at: string;
+  stores: Array<{ id: string; name: string }>;
+}
+
 const Admin = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -49,6 +57,7 @@ const Admin = () => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'store' | 'product'; id: string } | null>(null);
@@ -62,6 +71,7 @@ const Admin = () => {
   useEffect(() => {
     document.title = 'Admin — Full Management';
     loadStores();
+    loadOwners();
   }, []);
 
   useEffect(() => {
@@ -154,6 +164,58 @@ const Admin = () => {
       return;
     }
     setProducts((data || []).map(p => ({ ...p, price: typeof p.price === 'number' ? p.price : Number(p.price) })));
+  };
+
+  const loadOwners = async () => {
+    try {
+      // Get all users with store_owner role
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'store_owner');
+
+      if (rolesError) throw rolesError;
+
+      if (!userRoles || userRoles.length === 0) {
+        setOwners([]);
+        return;
+      }
+
+      // Get profile information for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, created_at')
+        .in('id', userRoles.map(r => r.user_id));
+
+      if (profilesError) throw profilesError;
+
+      // Get stores for each owner
+      const ownersWithStores = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          const { data: stores } = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('owner_id', profile.id);
+
+          return {
+            id: profile.id,
+            email: profile.email || '',
+            full_name: profile.full_name || '',
+            created_at: profile.created_at || '',
+            stores: stores || [],
+          };
+        })
+      );
+
+      setOwners(ownersWithStores);
+    } catch (error) {
+      console.error('Error loading owners:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to load store owners', 
+        variant: 'destructive' 
+      });
+    }
   };
 
   const saveStore = async () => {
@@ -293,6 +355,7 @@ const Admin = () => {
             <TabsList>
               <TabsTrigger value="store">Store Details</TabsTrigger>
               <TabsTrigger value="products">Products</TabsTrigger>
+              <TabsTrigger value="owners">Store Owners</TabsTrigger>
             </TabsList>
 
             <TabsContent value="store" className="space-y-4">
@@ -489,6 +552,62 @@ const Admin = () => {
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="owners" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Store Owners</CardTitle>
+                    <span className="text-sm text-muted-foreground">
+                      {owners.length} owners
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {owners.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No store owners registered yet.</p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Stores</TableHead>
+                          <TableHead>Joined</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {owners.map((owner) => (
+                          <TableRow key={owner.id}>
+                            <TableCell className="font-medium">{owner.full_name}</TableCell>
+                            <TableCell>{owner.email}</TableCell>
+                            <TableCell>
+                              {owner.stores.length === 0 ? (
+                                <span className="text-muted-foreground">No stores</span>
+                              ) : (
+                                <div className="flex flex-col gap-1">
+                                  {owner.stores.map((store) => (
+                                    <span key={store.id} className="text-sm">
+                                      {store.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {new Date(owner.created_at).toLocaleDateString()}
                             </TableCell>
                           </TableRow>
                         ))}

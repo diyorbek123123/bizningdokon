@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-// Removed react-leaflet usage
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Navigation } from '@/components/Navigation';
@@ -11,6 +10,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Navigation as NavigationIcon, Phone, MapPin } from 'lucide-react';
 
 interface Store {
   id: string;
@@ -58,13 +59,49 @@ const MapView = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
  
-   useEffect(() => {
-     fetchStores();
-   }, []);
+  useEffect(() => {
+    fetchStores();
+    getUserLocation();
+  }, []);
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
+          setUserLocation(coords);
+          if (mapRef.current) {
+            mapRef.current.setView(coords, 13);
+            if (userMarkerRef.current) {
+              userMarkerRef.current.setLatLng(coords);
+            } else {
+              const blueIcon = L.divIcon({
+                html: '<div class="user-location-marker"></div>',
+                className: 'user-location-container',
+                iconSize: [20, 20],
+              });
+              userMarkerRef.current = L.marker(coords, { icon: blueIcon }).addTo(mapRef.current);
+            }
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          toast({
+            title: 'Location error',
+            description: 'Could not get your location',
+            variant: 'destructive',
+          });
+        }
+      );
+    }
+  };
 
   const fetchStores = async () => {
     try {
@@ -117,12 +154,22 @@ const MapView = () => {
     fetchProductsForStore(store.id);
   };
 
+  const openDirections = (lat: number, lng: number) => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  };
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()))
+  );
+
   // Initialize Leaflet map once
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
-    mapRef.current = L.map(mapContainerRef.current).setView([41.3775, 64.5853], 6);
+    const initialCenter: [number, number] = userLocation || [41.3775, 64.5853];
+    mapRef.current = L.map(mapContainerRef.current).setView(initialCenter, userLocation ? 13 : 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: '&copy; OpenStreetMap',
       maxZoom: 19,
     }).addTo(mapRef.current);
 
@@ -130,6 +177,7 @@ const MapView = () => {
       mapRef.current?.remove();
       mapRef.current = null;
       markersLayerRef.current = null;
+      userMarkerRef.current = null;
     };
   }, []);
 
@@ -169,9 +217,15 @@ const MapView = () => {
       <Navigation />
 
       <div className="container mx-auto px-4 py-6 lg:py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">{t('map.title')}</h1>
-          <p className="text-muted-foreground">{t('map.clickStore')}</p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-1">{t('map.title', { defaultValue: 'Store Map' })}</h1>
+            <p className="text-sm text-muted-foreground">{t('map.clickStore', { defaultValue: 'Click on a store to see details' })}</p>
+          </div>
+          <Button onClick={getUserLocation} variant="outline" size="sm">
+            <MapPin className="h-4 w-4 mr-2" />
+            {t('map.myLocation', { defaultValue: 'My Location' })}
+          </Button>
         </div>
 
         <style>{`
@@ -180,90 +234,145 @@ const MapView = () => {
             border: none;
           }
           .custom-marker {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: hsl(var(--primary));
             color: hsl(var(--primary-foreground));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            font-size: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
             cursor: pointer;
             transition: all 0.2s;
           }
           .custom-marker:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
           }
           .custom-marker::after {
-            content: '📍';
+            content: '🏪';
+          }
+          .user-location-container {
+            background: transparent;
+            border: none;
+          }
+          .user-location-marker {
+            width: 20px;
+            height: 20px;
+            background: #4285F4;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
           }
           .leaflet-container {
             font-family: inherit;
           }
         `}</style>
 
-        <div className="w-full h-[calc(100vh-280px)] min-h-[300px] rounded-lg shadow-lg border overflow-hidden">
+        <div className="w-full h-[calc(100vh-240px)] min-h-[400px] rounded-lg shadow-lg border overflow-hidden relative">
           <div ref={mapContainerRef} className="w-full h-full" />
         </div>
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="bottom" className="h-[75vh] p-0">
-          <SheetHeader className="p-4 border-b bg-card/60 backdrop-blur">
-            <SheetTitle>{selectedStore?.name}</SheetTitle>
-            <SheetDescription>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>{selectedStore?.address}</p>
-                <p>{selectedStore?.phone}</p>
-              </div>
-            </SheetDescription>
-          </SheetHeader>
-          <div className="p-4">
-            {selectedStore?.description && (
-              <p className="mb-4 text-sm text-foreground/90">{selectedStore.description}</p>
-            )}
-
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">{t('map.products', { defaultValue: 'Products' })}</h2>
-              {selectedStore && (
-                <Button size="sm" onClick={() => navigate(`/store/${selectedStore.id}`)}>
-                  {t('map.viewStore', { defaultValue: 'View store' })}
-                </Button>
-              )}
-            </div>
-
-            <ScrollArea className="h-[52vh] pr-4">
-              {loadingProducts ? (
-                <div className="text-sm text-muted-foreground">{t('common.loading', { defaultValue: 'Loading...' })}</div>
-              ) : products.length === 0 ? (
-                <div className="text-sm text-muted-foreground">{t('map.noProducts', { defaultValue: 'No products available' })}</div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {products.map((p) => (
-                    <Card key={p.id} className="bg-card border shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="font-medium">{p.name}</div>
-                            {p.description && (
-                              <div className="text-sm text-muted-foreground line-clamp-2 mt-1">{p.description}</div>
-                            )}
-                          </div>
-                          <div className="text-sm font-semibold text-foreground">
-                            {typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+        <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
+          {selectedStore && (
+            <>
+              {selectedStore.photo_url && (
+                <div className="w-full h-48 overflow-hidden">
+                  <img
+                    src={selectedStore.photo_url}
+                    alt={selectedStore.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               )}
-            </ScrollArea>
-          </div>
+              
+              <div className="p-4 border-b bg-background">
+                <h2 className="text-2xl font-bold mb-2">{selectedStore.name}</h2>
+                {selectedStore.description && (
+                  <p className="text-sm text-muted-foreground mb-3">{selectedStore.description}</p>
+                )}
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{selectedStore.address}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <a href={`tel:${selectedStore.phone}`} className="hover:underline">
+                      {selectedStore.phone}
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="default"
+                    className="flex-1"
+                    onClick={() => openDirections(selectedStore.latitude, selectedStore.longitude)}
+                  >
+                    <NavigationIcon className="h-4 w-4 mr-2" />
+                    {t('map.directions', { defaultValue: 'Get Directions' })}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/store/${selectedStore.id}`)}
+                  >
+                    {t('map.viewStore', { defaultValue: 'View Store' })}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-hidden flex flex-col p-4">
+                <div className="mb-3">
+                  <h3 className="text-lg font-semibold mb-2">{t('map.products', { defaultValue: 'Products' })}</h3>
+                  <Input
+                    placeholder={t('map.searchProducts', { defaultValue: 'Search products...' })}
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+
+                <ScrollArea className="flex-1">
+                  {loadingProducts ? (
+                    <div className="text-sm text-muted-foreground p-4">{t('common.loading', { defaultValue: 'Loading...' })}</div>
+                  ) : filteredProducts.length === 0 ? (
+                    <div className="text-sm text-muted-foreground p-4">
+                      {productSearch
+                        ? t('map.noSearchResults', { defaultValue: 'No products found' })
+                        : t('map.noProducts', { defaultValue: 'No products available' })}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+                      {filteredProducts.map((p) => (
+                        <Card key={p.id} className="bg-card border shadow-sm hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1">
+                                <div className="font-medium text-base mb-1">{p.name}</div>
+                                {p.description && (
+                                  <div className="text-sm text-muted-foreground line-clamp-2">{p.description}</div>
+                                )}
+                              </div>
+                              <div className="text-base font-bold text-primary whitespace-nowrap">
+                                ${typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            </>
+          )}
         </SheetContent>
       </Sheet>
     </div>

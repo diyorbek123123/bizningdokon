@@ -11,6 +11,7 @@ import ProductSearch from "./pages/ProductSearch";
 import AboutUs from "./pages/AboutUs";
 import EditAbout from "./pages/EditAbout";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/search" element={<ProductSearch />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/edit-about" element={<EditAbout />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -12,11 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Mapbox token handling: prefer user-provided token, fallback to demo
-// Add your token in Settings -> Backend -> Secrets as MAPBOX_PUBLIC_TOKEN for production
-const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNseDJ3NzQxMjBhMjYya3M2ZGNyODcxbmcifQ.9R0I_w8YE3B-4VQK5H8Z7g';
-
-interface Store {
+  // Mapbox token handling: prefer user-provided token, fallback to demo
+  // Add your token in Settings -> Backend -> Secrets as MAPBOX_PUBLIC_TOKEN for production
+  const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNseDJ3NzQxMjBhMjYya3M2ZGNyODcxbmcifQ.9R0I_w8YE3B-4VQK5H8Z7g';
+  const ENV_MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN as string | undefined;
+  
+  interface Store {
   id: string;
   name: string;
   description: string | null;
@@ -47,8 +48,8 @@ const MapView = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string>(() => localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
-  const [tokenInput, setTokenInput] = useState<string>(localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN);
+  const [mapboxToken, setMapboxToken] = useState<string>(() => localStorage.getItem('mapbox_token') || ENV_MAPBOX_TOKEN || DEFAULT_MAPBOX_TOKEN);
+  const [tokenInput, setTokenInput] = useState<string>(localStorage.getItem('mapbox_token') || ENV_MAPBOX_TOKEN || DEFAULT_MAPBOX_TOKEN);
   const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,6 +87,7 @@ const MapView = () => {
     // Map error handling & fallback
     map.current.on('error', (e) => {
       const msg = (e as any)?.error?.message || 'Unknown map error';
+      setMapError(msg);
       toast({
         title: t('map.loadError', { defaultValue: 'Map failed to load' }),
         description: msg.includes('Unauthorized') || msg.includes('forbidden')
@@ -101,6 +103,7 @@ const MapView = () => {
     
     // Trigger geolocation and ensure proper sizing
     map.current.on('load', () => {
+      setMapError(null);
       geolocate.trigger();
       map.current?.resize();
       setTimeout(() => map.current?.resize(), 50);
@@ -264,7 +267,7 @@ const MapView = () => {
 
           <div
             ref={mapContainer}
-            className="w-full h-[calc(100vh-280px)] rounded-lg shadow-lg border relative"
+            className="w-full h-[calc(100vh-280px)] min-h-[300px] rounded-lg shadow-lg border relative"
           >
             {mapError && (
               <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center text-center p-6">

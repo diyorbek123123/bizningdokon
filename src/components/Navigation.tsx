@@ -145,7 +145,7 @@ export const Navigation = () => {
                 <Button asChild variant={isActive('/admin') ? 'default' : 'ghost'} size="sm">
                   <Link to="/admin" className="gap-2">
                     <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">Admin</span>
+                    <span className="hidden sm:inline">Add Changes</span>
                   </Link>
                 </Button>
                 

@@ -70,23 +70,45 @@ const OwnerAdmin = () => {
 
   const fetchData = async () => {
     try {
-      // Load owners via secure backend function (avoids broken FK joins)
-      const { data: ownersResp, error: ownersErr } = await supabase.functions.invoke('list-store-owners');
-      if (ownersErr) throw ownersErr;
+      // Try via secure backend function first
+      const { data: ownersResp } = await supabase.functions.invoke('list-store-owners');
 
-      // Load stores normally
-      const { data: storesData, error: storesErr } = await supabase
-        .from('stores')
-        .select('*');
-      if (storesErr) throw storesErr;
+      let ownersData = ownersResp?.owners as any[] | undefined;
 
+      // Fallback to direct queries if the function isn't available
+      if (!ownersData || ownersData.length === 0) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'store_owner');
+
+        const ownerIds = (roles || []).map((r: any) => r.user_id);
+
+        if (ownerIds.length) {
+          const [{ data: profiles }, { data: storesByOwner }] = await Promise.all([
+            supabase.from('profiles').select('id, email, full_name, created_at').in('id', ownerIds),
+            supabase.from('stores').select('id, name, owner_id').in('owner_id', ownerIds),
+          ]);
+
+          ownersData = (profiles || []).map((p: any) => ({
+            id: p.id,
+            email: p.email,
+            full_name: p.full_name,
+            created_at: p.created_at,
+            stores: (storesByOwner || [])
+              .filter((s: any) => s.owner_id === p.id)
+              .map((s: any) => ({ id: s.id, name: s.name })),
+          }));
+        } else {
+          ownersData = [];
+        }
+      }
+
+      // Load stores for stats and assignment
+      const { data: storesData } = await supabase.from('stores').select('*');
       setStores(storesData || []);
 
-      const ownersData = (ownersResp?.owners || []).map((o: any) => ({
-        ...o,
-        role: 'store_owner',
-      }));
-      setOwners(ownersData);
+      setOwners((ownersData || []).map((o: any) => ({ ...o, role: 'store_owner' })));
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({

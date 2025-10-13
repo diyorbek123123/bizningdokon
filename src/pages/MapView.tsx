@@ -137,21 +137,132 @@ const MapView = () => {
     }
   };
 
+  const fetchProductsForStore = async (storeId: string) => {
+    setLoadingProducts(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: t('errors.error', { defaultValue: 'Error' }),
+        description: t('map.failedProducts', { defaultValue: 'Failed to load products' }),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const handleSaveToken = () => {
+    try {
+      localStorage.setItem('mapbox_token', tokenInput);
+      setMapboxToken(tokenInput);
+      toast({
+        title: t('map.tokenSaved', { defaultValue: 'Map token saved' }),
+        description: t('map.tokenSavedDesc', { defaultValue: 'Reloaded with your token.' }),
+      });
+    } catch (e) {
+      console.error('Failed to save token', e);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">{t('map.title')}</h1>
-          <p className="text-muted-foreground">{t('map.clickStore')}</p>
+        <div className="container mx-auto px-4 py-6 lg:py-8">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold mb-2">{t('map.title')}</h1>
+            <p className="text-muted-foreground">{t('map.clickStore')}</p>
+          </div>
+
+          <Card className="mb-4 bg-card shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="text-sm text-muted-foreground">{t('map.tokenLabel', { defaultValue: 'Mapbox public token' })}</div>
+                <div className="flex w-full gap-2">
+                  <Input
+                    value={tokenInput}
+                    onChange={(e) => setTokenInput(e.target.value)}
+                    placeholder="pk.XXXXXXXXXXXXXXXXXXXX"
+                    aria-label={t('map.tokenAria', { defaultValue: 'Mapbox public token' })}
+                    className="flex-1"
+                  />
+                  <Button variant="secondary" onClick={handleSaveToken}>
+                    {t('common.save', { defaultValue: 'Save' })}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div
+            ref={mapContainer}
+            className="w-full h-[calc(100vh-280px)] rounded-lg shadow-lg border"
+          ></div>
         </div>
 
-        <div
-          ref={mapContainer}
-          className="w-full h-[calc(100vh-250px)] rounded-lg shadow-lg"
-        />
-      </div>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetContent side="bottom" className="h-[75vh] p-0">
+            <SheetHeader className="p-4 border-b bg-card/60 backdrop-blur">
+              <SheetTitle>{selectedStore?.name}</SheetTitle>
+              <SheetDescription>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>{selectedStore?.address}</p>
+                  <p>{selectedStore?.phone}</p>
+                </div>
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              {selectedStore?.description && (
+                <p className="mb-4 text-sm text-foreground/90">{selectedStore.description}</p>
+              )}
+
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold">{t('map.products', { defaultValue: 'Products' })}</h2>
+                {selectedStore && (
+                  <Button size="sm" onClick={() => navigate(`/store/${selectedStore.id}`)}>
+                    {t('map.viewStore', { defaultValue: 'View store' })}
+                  </Button>
+                )}
+              </div>
+
+              <ScrollArea className="h-[52vh] pr-4">
+                {loadingProducts ? (
+                  <div className="text-sm text-muted-foreground">{t('common.loading', { defaultValue: 'Loading...' })}</div>
+                ) : products.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">{t('map.noProducts', { defaultValue: 'No products available' })}</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {products.map((p) => (
+                      <Card key={p.id} className="bg-card border shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-medium">{p.name}</div>
+                              {p.description && (
+                                <div className="text-sm text-muted-foreground line-clamp-2 mt-1">{p.description}</div>
+                              )}
+                            </div>
+                            <div className="text-sm font-semibold text-foreground">
+                              {typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+          </SheetContent>
+        </Sheet>
     </div>
   );
 };

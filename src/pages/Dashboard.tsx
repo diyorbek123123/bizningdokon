@@ -113,7 +113,7 @@ const Dashboard = () => {
       setProducts(productsData || []);
 
       // Fetch reviews
-      const { data: reviewsData } = await supabase
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from('store_reviews')
         .select(`
           *,
@@ -125,6 +125,8 @@ const Dashboard = () => {
         .eq('store_id', storeData.id)
         .order('created_at', { ascending: false });
 
+      console.log('Reviews data:', reviewsData);
+      console.log('Reviews error:', reviewsError);
       setReviews(reviewsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);

@@ -168,46 +168,9 @@ const Admin = () => {
 
   const loadOwners = async () => {
     try {
-      // Get all users with store_owner role
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'store_owner');
-
-      if (rolesError) throw rolesError;
-
-      if (!userRoles || userRoles.length === 0) {
-        setOwners([]);
-        return;
-      }
-
-      // Get profile information for these users
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, created_at')
-        .in('id', userRoles.map(r => r.user_id));
-
-      if (profilesError) throw profilesError;
-
-      // Get stores for each owner
-      const ownersWithStores = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          const { data: stores } = await supabase
-            .from('stores')
-            .select('id, name')
-            .eq('owner_id', profile.id);
-
-          return {
-            id: profile.id,
-            email: profile.email || '',
-            full_name: profile.full_name || '',
-            created_at: profile.created_at || '',
-            stores: stores || [],
-          };
-        })
-      );
-
-      setOwners(ownersWithStores);
+      const { data, error } = await supabase.functions.invoke('list-store-owners');
+      if (error) throw error;
+      setOwners(data?.owners || []);
     } catch (error) {
       console.error('Error loading owners:', error);
       toast({ 

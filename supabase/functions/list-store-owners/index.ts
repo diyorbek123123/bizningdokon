@@ -1,77 +1,89 @@
 // deno-lint-ignore-file no-explicit-any
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-export const handler = async (req: Request): Promise<Response> => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: { ...corsHeaders } });
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: req.headers.get('Authorization') || '' } },
+    const url = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!url || !anonKey || !serviceKey) {
+      return new Response(JSON.stringify({ error: "Server not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Auth client with the caller's JWT
+    const authClient = createClient(url, anonKey, {
+      global: { headers: { Authorization: authHeader } },
     });
 
-    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-    // Validate user and admin role
-    const { data: userData, error: userError } = await authClient.auth.getUser();
-    if (userError || !userData.user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    const { data: { user }, error: userError } = await authClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = userData.user.id;
-    const { data: isAdminData, error: roleError } = await adminClient
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
+    // Service role client for privileged reads
+    const adminClient = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Ensure caller is an admin
+    const { data: isAdmin, error: roleError } = await adminClient
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
       .maybeSingle();
 
-    if (roleError || !isAdminData) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+    if (roleError || !isAdmin) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch owners
+    // Get all store owners
     const { data: roles, error: rolesError } = await adminClient
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'store_owner');
-
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "store_owner");
     if (rolesError) throw rolesError;
-    const ownerIds = (roles || []).map((r: any) => r.user_id);
 
+    const ownerIds = (roles || []).map((r: any) => r.user_id);
     if (ownerIds.length === 0) {
       return new Response(JSON.stringify({ owners: [] }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { data: profiles, error: profilesError } = await adminClient
-      .from('profiles')
-      .select('id, email, full_name, created_at')
-      .in('id', ownerIds);
+    const [{ data: profiles, error: profilesError }, { data: stores, error: storesError }] = await Promise.all([
+      adminClient.from("profiles").select("id, email, full_name, created_at").in("id", ownerIds),
+      adminClient.from("stores").select("id, name, owner_id").in("owner_id", ownerIds),
+    ]);
     if (profilesError) throw profilesError;
-
-    // Fetch stores for all owners in one query
-    const { data: stores, error: storesError } = await adminClient
-      .from('stores')
-      .select('id, name, owner_id')
-      .in('owner_id', ownerIds);
     if (storesError) throw storesError;
 
     const owners = (profiles || []).map((p: any) => ({
@@ -79,19 +91,18 @@ export const handler = async (req: Request): Promise<Response> => {
       email: p.email,
       full_name: p.full_name,
       created_at: p.created_at,
-      stores: (stores || []).filter((s: any) => s.owner_id === p.id).map((s: any) => ({ id: s.id, name: s.name })),
+      stores: (stores || [])
+        .filter((s: any) => s.owner_id === p.id)
+        .map((s: any) => ({ id: s.id, name: s.name })),
     }));
 
     return new Response(JSON.stringify({ owners }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e?.message || String(e) }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-};
-
-// Default export for Deno
-export default handler;
+});

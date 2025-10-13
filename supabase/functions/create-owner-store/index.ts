@@ -23,20 +23,22 @@ serve(async (req) => {
 
     const url = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!url || !anonKey) {
+    if (!url || !anonKey || !serviceKey) {
       return new Response(
         JSON.stringify({ error: "Server not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabase = createClient(url, anonKey, {
+    // Create client with user's auth to check permissions
+    const supabaseAuth = createClient(url, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
     // Get the authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
@@ -45,7 +47,7 @@ serve(async (req) => {
     }
 
     // Check if user is a store owner
-    const { data: roleData } = await supabase
+    const { data: roleData } = await supabaseAuth
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
@@ -57,6 +59,11 @@ serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Create service role client for admin operations
+    const supabase = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
     // Check if owner already has a store
     const { data: existingStore } = await supabase

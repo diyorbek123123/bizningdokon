@@ -156,11 +156,24 @@ const OwnerAdmin = () => {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+          toast({
+            title: 'Email already exists',
+            description: 'This email is already registered. Use a different email or contact the existing user.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        throw authError;
+      }
 
       if (!authData.user) {
         throw new Error('Failed to create user account');
       }
+
+      // Wait for profile creation trigger
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Assign store_owner role
       const { error: roleError } = await supabase
@@ -174,10 +187,12 @@ const OwnerAdmin = () => {
 
       toast({ 
         title: 'Store owner account created',
-        description: `Email: ${email}, Password: ${password}`
+        description: `Email: ${email} - Password: ${password}`,
+        duration: 8000,
       });
       
       setCreateDialogOpen(false);
+      (e.target as HTMLFormElement).reset();
       fetchData();
     } catch (error: any) {
       toast({

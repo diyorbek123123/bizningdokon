@@ -144,51 +144,15 @@ const OwnerAdmin = () => {
     const fullName = formData.get('fullName') as string;
 
     try {
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/`
-        }
+      const { data, error } = await supabase.functions.invoke('create-store-owner', {
+        body: { email, password, fullName },
       });
 
-      if (authError) {
-        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
-          toast({
-            title: 'Email already exists',
-            description: 'This email is already registered. Use a different email or contact the existing user.',
-            variant: 'destructive',
-          });
-          return;
-        }
-        throw authError;
-      }
-
-      if (!authData.user) {
-        throw new Error('Failed to create user account');
-      }
-
-      // Wait for profile creation trigger
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Assign store_owner role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: 'store_owner'
-        });
-
-      if (roleError) throw roleError;
+      if (error) throw error;
 
       toast({ 
-        title: 'Store owner account created',
-        description: `Email: ${email} - Password: ${password}`,
-        duration: 8000,
+        title: 'Store owner ready',
+        description: `Account created or updated for ${email}`,
       });
       
       setCreateDialogOpen(false);

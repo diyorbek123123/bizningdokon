@@ -8,6 +8,8 @@ const resources = {
         home: 'Home',
         map: 'Map',
         addStore: 'Add Store',
+        search: 'Search',
+        about: 'About',
       },
       hero: {
         title: 'Find Shops & Products',
@@ -70,6 +72,18 @@ const resources = {
         title: 'Store Locations',
         clickStore: 'Click on a marker to view store details',
       },
+      ai: {
+        assistant: 'AI Assistant',
+        welcome: 'Hello! I can help you find stores and products. What are you looking for?',
+        placeholder: 'Ask me anything...',
+      },
+      messages: {
+        title: 'Messages',
+        sent: 'Message sent successfully',
+        loginRequired: 'Please login to send messages',
+        noMessages: 'No messages yet. Start a conversation!',
+        placeholder: 'Type your message...',
+      },
     },
   },
   ru: {
@@ -78,6 +92,8 @@ const resources = {
         home: 'Главная',
         map: 'Карта',
         addStore: 'Добавить магазин',
+        search: 'Поиск',
+        about: 'О нас',
       },
       hero: {
         title: 'Найти магазины и товары',
@@ -140,6 +156,18 @@ const resources = {
         title: 'Расположение магазинов',
         clickStore: 'Нажмите на маркер, чтобы увидеть детали магазина',
       },
+      ai: {
+        assistant: 'AI Ассистент',
+        welcome: 'Здравствуйте! Я могу помочь вам найти магазины и товары. Что вы ищете?',
+        placeholder: 'Спросите меня о чем угодно...',
+      },
+      messages: {
+        title: 'Сообщения',
+        sent: 'Сообщение успешно отправлено',
+        loginRequired: 'Пожалуйста, войдите, чтобы отправлять сообщения',
+        noMessages: 'Сообщений пока нет. Начните разговор!',
+        placeholder: 'Введите ваше сообщение...',
+      },
     },
   },
   uz: {
@@ -148,6 +176,8 @@ const resources = {
         home: 'Bosh sahifa',
         map: 'Xarita',
         addStore: "Do'kon qo'shish",
+        search: 'Qidirish',
+        about: 'Biz haqimizda',
       },
       hero: {
         title: "Do'konlar va mahsulotlarni toping",
@@ -209,6 +239,18 @@ const resources = {
       map: {
         title: "Do'konlarning joylashuvi",
         clickStore: "Do'kon tafsilotlarini ko'rish uchun belgiga bosing",
+      },
+      ai: {
+        assistant: 'AI Yordamchi',
+        welcome: 'Salom! Men sizga do\'konlar va mahsulotlarni topishda yordam bera olaman. Nima qidiryapsiz?',
+        placeholder: 'Menga savollaringizni bering...',
+      },
+      messages: {
+        title: 'Xabarlar',
+        sent: 'Xabar muvaffaqiyatli yuborildi',
+        loginRequired: 'Xabar yuborish uchun tizimga kiring',
+        noMessages: 'Hali xabarlar yo\'q. Suhbatni boshlang!',
+        placeholder: 'Xabaringizni kiriting...',
       },
     },
   },

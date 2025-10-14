@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2, Store, Package, Eye, MessageSquare, Edit } from 'lucide-react';
+import { StoreMessages } from '@/components/StoreMessages';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { MapPicker } from '@/components/MapPicker';
@@ -745,6 +746,19 @@ const Dashboard = () => {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Messages */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                {t('messages.title')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StoreMessages storeId={store.id} isOwner={true} />
             </CardContent>
           </Card>
 

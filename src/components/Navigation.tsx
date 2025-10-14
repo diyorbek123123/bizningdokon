@@ -105,7 +105,7 @@ export const Navigation = () => {
             >
               <Link to="/search" className="gap-1.5">
                 <Search className="h-3.5 w-3.5" />
-                Search
+                {t('nav.search')}
               </Link>
             </Button>
 
@@ -118,7 +118,7 @@ export const Navigation = () => {
               >
                 <Link to="/about" className="gap-1.5">
                   <Info className="h-3.5 w-3.5" />
-                  About
+                  {t('nav.about')}
                 </Link>
               </Button>
             )}

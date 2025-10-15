@@ -11,49 +11,68 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { MapPicker } from '@/components/MapPicker';
 
-const AddStore = () => {
+const OwnerAddStore = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [userId, setUserId] = useState<string>('');
 
   useEffect(() => {
-    checkAdminAccess();
+    checkOwnerAccess();
   }, []);
 
-  const checkAdminAccess = async () => {
+  const checkOwnerAccess = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
       toast({
-        title: t('auth.adminOnly'),
-        description: t('auth.loginDescription'),
+        title: 'Login Required',
+        description: 'Please login as a store owner',
         variant: 'destructive',
       });
       navigate('/auth');
       return;
     }
 
+    setUserId(session.user.id);
+
     const { data } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', session.user.id)
-      .eq('role', 'admin')
+      .eq('role', 'store_owner')
       .maybeSingle();
 
     if (!data) {
       toast({
-        title: t('auth.adminOnly'),
-        description: 'You need admin privileges to add stores',
+        title: 'Access Denied',
+        description: 'You need store owner privileges',
         variant: 'destructive',
       });
       navigate('/');
       return;
     }
 
-    setIsAdmin(true);
+    // Check if owner already has a store
+    const { data: existingStore } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('owner_id', session.user.id)
+      .maybeSingle();
+
+    if (existingStore) {
+      toast({
+        title: 'Store Already Exists',
+        description: 'You already have a store. Redirecting to dashboard...',
+      });
+      navigate('/dashboard');
+      return;
+    }
+
+    setIsOwner(true);
     setChecking(false);
   };
 
@@ -71,6 +90,16 @@ const AddStore = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.latitude || !formData.longitude) {
+      toast({
+        title: 'Location Required',
+        description: 'Please select your store location on the map',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -85,22 +114,23 @@ const AddStore = () => {
           photo_url: formData.photo_url || null,
           open_time: formData.open_time || null,
           close_time: formData.close_time || null,
+          owner_id: userId,
         },
       ]);
 
       if (error) throw error;
 
       toast({
-        title: t('addStore.success'),
-        description: 'You can now view it on the map',
+        title: 'Store Created!',
+        description: 'Your store has been added successfully',
       });
 
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error adding store:', error);
       toast({
-        title: t('addStore.error'),
-        description: 'Please check your information and try again',
+        title: 'Error',
+        description: 'Failed to create store. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -119,7 +149,7 @@ const AddStore = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!isOwner) {
     return null;
   }
 
@@ -129,11 +159,11 @@ const AddStore = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto p-6">
-          <h1 className="text-3xl font-bold mb-6">{t('addStore.title')}</h1>
+          <h1 className="text-3xl font-bold mb-6">Create Your Store</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">{t('addStore.name')} *</Label>
+              <Label htmlFor="name">Store Name *</Label>
               <Input
                 id="name"
                 required
@@ -144,7 +174,7 @@ const AddStore = () => {
             </div>
 
             <div>
-              <Label htmlFor="description">{t('addStore.description')}</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -155,7 +185,7 @@ const AddStore = () => {
             </div>
 
             <div>
-              <Label htmlFor="phone">{t('addStore.phone')} *</Label>
+              <Label htmlFor="phone">Phone Number *</Label>
               <Input
                 id="phone"
                 required
@@ -166,7 +196,7 @@ const AddStore = () => {
             </div>
 
             <div>
-              <Label htmlFor="address">{t('addStore.address')} *</Label>
+              <Label htmlFor="address">Address *</Label>
               <Input
                 id="address"
                 required
@@ -177,7 +207,7 @@ const AddStore = () => {
             </div>
 
             <div>
-              <Label>{t('addStore.location')} *</Label>
+              <Label>Store Location *</Label>
               <MapPicker
                 onLocationSelect={(lat, lng) => {
                   setFormData({ 
@@ -192,7 +222,7 @@ const AddStore = () => {
             </div>
 
             <div>
-              <Label htmlFor="photo">{t('addStore.photo')}</Label>
+              <Label htmlFor="photo">Store Photo URL</Label>
               <Input
                 id="photo"
                 type="url"
@@ -224,7 +254,7 @@ const AddStore = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Adding...' : t('addStore.submit')}
+              {loading ? 'Creating Store...' : 'Create Store'}
             </Button>
           </form>
         </Card>
@@ -233,4 +263,4 @@ const AddStore = () => {
   );
 };
 
-export default AddStore;
+export default OwnerAddStore;

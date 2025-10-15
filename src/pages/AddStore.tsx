@@ -68,12 +68,47 @@ const AddStore = () => {
     open_time: '',
     close_time: '',
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let photoUrl = formData.photo_url;
+
+      // Upload photo if selected
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `stores/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        photoUrl = publicUrl;
+      }
+
       const { error } = await supabase.from('stores').insert([
         {
           name: formData.name,
@@ -82,7 +117,7 @@ const AddStore = () => {
           address: formData.address,
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude),
-          photo_url: formData.photo_url || null,
+          photo_url: photoUrl || null,
           open_time: formData.open_time || null,
           close_time: formData.close_time || null,
         },
@@ -195,11 +230,15 @@ const AddStore = () => {
               <Label htmlFor="photo">{t('addStore.photo')}</Label>
               <Input
                 id="photo"
-                type="url"
-                value={formData.photo_url}
-                onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                placeholder="https://example.com/photo.jpg"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
               />
+              {photoPreview && (
+                <div className="mt-2">
+                  <img src={photoPreview} alt="Preview" className="h-32 w-32 object-cover rounded-lg" />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

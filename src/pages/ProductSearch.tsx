@@ -5,7 +5,7 @@ import { Navigation } from '@/components/Navigation';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Navigation as NavigationIcon } from 'lucide-react';
+import { Search, MapPin, Navigation as NavigationIcon, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { StoreFilters } from '@/components/StoreFilters';
@@ -16,6 +16,7 @@ interface ProductWithStore {
   price: number;
   description: string | null;
   category: string | null;
+  image_url: string | null;
   store_id: string;
   store: {
     id: string;
@@ -102,6 +103,7 @@ const ProductSearch = () => {
           price,
           description,
           category,
+          image_url,
           store_id,
           stores!inner (
             id,
@@ -135,6 +137,7 @@ const ProductSearch = () => {
           price: item.price,
           description: item.description,
           category: item.category || null,
+          image_url: item.image_url || null,
           store_id: item.store_id,
           store: item.stores,
         };
@@ -251,44 +254,57 @@ const ProductSearch = () => {
               </p>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {sortedProducts.map((product) => (
-                <Card key={product.id} className="p-6">
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-xl mb-2">{product.name}</h3>
-                      {product.description && (
-                        <p className="text-muted-foreground mb-3">{product.description}</p>
+                <Card key={product.id} className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-4">
+                    {/* Small product image */}
+                    <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Package className="h-8 w-8 text-muted-foreground" />
                       )}
-                      <div className="space-y-1 text-sm">
+                    </div>
+
+                    {/* Product info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base mb-1 truncate">{product.name}</h3>
+                      {product.description && (
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-1">{product.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <Link 
                           to={`/store/${product.store.id}`}
-                          className="font-semibold text-primary hover:underline block"
+                          className="font-medium text-primary hover:underline"
                         >
                           {product.store.name}
                         </Link>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{product.store.address}</span>
-                          {product.distance && (
-                            <span className="ml-2">({product.distance.toFixed(1)} km away)</span>
-                          )}
-                        </div>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {product.distance && `${product.distance.toFixed(1)} km`}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right space-y-3">
-                      <div className="text-2xl font-bold text-primary">
+
+                    {/* Price and action */}
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <div className="text-lg font-bold text-primary">
                         {product.price.toLocaleString()} UZS
                       </div>
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => {
                           const url = `https://www.google.com/maps/dir/?api=1&destination=${product.store.latitude},${product.store.longitude}`;
                           window.open(url, '_blank');
                         }}
                       >
-                        <NavigationIcon className="mr-2 h-4 w-4" />
-                        Directions
+                        <NavigationIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

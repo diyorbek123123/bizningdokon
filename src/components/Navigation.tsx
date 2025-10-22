@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from './LanguageSelector';
 import { ThemeToggle } from './ThemeToggle';
-import { Store, MapPin, Plus, LogIn, LogOut, Search, Info, Edit, Heart, LayoutDashboard, UserCog, Menu, X } from 'lucide-react';
+import { Store, MapPin, Plus, LogIn, LogOut, Search, Info, Edit, Heart, LayoutDashboard, UserCog, Menu, X, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
@@ -108,6 +108,20 @@ export const Navigation = () => {
                 {t('nav.search')}
               </Link>
             </Button>
+
+            {user && (
+              <Button
+                asChild
+                variant={isActive('/messages') ? 'default' : 'ghost'}
+                size="sm"
+                className="h-8 px-2 text-xs whitespace-nowrap"
+              >
+                <Link to="/messages" className="gap-1.5">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  {t('messages.title')}
+                </Link>
+              </Button>
+            )}
 
             {userRole !== 'admin' && (
               <Button
@@ -233,6 +247,21 @@ export const Navigation = () => {
                       </Link>
                     </Button>
                   </SheetClose>
+
+                  {user && (
+                    <SheetClose asChild>
+                      <Button
+                        asChild
+                        variant={isActive('/messages') ? 'default' : 'ghost'}
+                        className="w-full justify-start"
+                      >
+                        <Link to="/messages" className="gap-2">
+                          <MessageCircle className="h-4 w-4" />
+                          {t('messages.title')}
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  )}
 
                   <SheetClose asChild>
                     <Button

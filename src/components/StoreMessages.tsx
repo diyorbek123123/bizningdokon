@@ -27,6 +27,7 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isStoreOwner, setIsStoreOwner] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -54,6 +55,17 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUserId(user?.id || null);
+    
+    if (user?.id) {
+      // Check if user is owner of this store
+      const { data: store } = await supabase
+        .from('stores')
+        .select('owner_id')
+        .eq('id', storeId)
+        .single();
+      
+      setIsStoreOwner(store?.owner_id === user.id);
+    }
   };
 
   const fetchMessages = async () => {
@@ -77,7 +89,7 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
         store_id: storeId,
         user_id: userId,
         message: newMessage.trim(),
-        sender_type: isOwner ? 'owner' : 'customer'
+        sender_type: isStoreOwner ? 'owner' : 'customer'
       });
 
       if (error) throw error;

@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
 import OwnerAdmin from "./pages/OwnerAdmin";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/owner-admin" element={<OwnerAdmin />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

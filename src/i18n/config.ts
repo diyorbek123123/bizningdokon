@@ -19,6 +19,7 @@ const resources = {
       common: {
         loading: 'Loading...',
         error: 'Error',
+        success: 'Success',
         allStores: 'All Stores',
         favorites: 'Favorites',
         noStoresFound: 'No stores found matching your criteria',
@@ -104,6 +105,7 @@ const resources = {
       common: {
         loading: 'Загрузка...',
         error: 'Ошибка',
+        success: 'Успешно',
         allStores: 'Все магазины',
         favorites: 'Избранное',
         noStoresFound: 'Магазины не найдены',
@@ -189,6 +191,7 @@ const resources = {
       common: {
         loading: 'Yuklanmoqda...',
         error: 'Xato',
+        success: 'Muvaffaqiyatli',
         allStores: "Barcha do'konlar",
         favorites: 'Sevimlilar',
         noStoresFound: "Do'konlar topilmadi",

@@ -287,140 +287,152 @@ const StoreDetail = () => {
           </div>
         </Card>
 
-        {/* Products Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">{t('store.products')}</h2>
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t('store.searchProducts')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
+        {/* Tabs Section */}
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="products">{t('store.products')}</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="messages">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Messages
+            </TabsTrigger>
+          </TabsList>
 
-          {filteredProducts.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground">{t('store.noProducts')}</p>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden">
-                  {product.image_url && (
-                    <div className="aspect-video w-full overflow-hidden">
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4 space-y-2">
-                    <h3 className="font-bold text-lg">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground">{product.description}</p>
-                    )}
-                    <p className="text-xl font-bold text-primary">
-                      {product.price.toLocaleString()} UZS
-                    </p>
-                  </div>
-                </Card>
-              ))}
+          {/* Products Tab */}
+          <TabsContent value="products" className="space-y-6 mt-6">
+            <div className="flex items-center justify-between">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t('store.searchProducts')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Reviews Section */}
-        <div className="space-y-6 mt-8">
-          <h2 className="text-2xl font-bold">Reviews</h2>
-          
-          {/* Review Form */}
-          {user ? (
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
-              <form onSubmit={handleSubmitReview} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rating</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRating(star)}
-                        className="transition-colors"
-                      >
-                        <Star
-                          className={`h-8 w-8 ${
-                            star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground'
-                          }`}
+            {filteredProducts.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-muted-foreground">{t('store.noProducts')}</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map((product) => (
+                  <Card key={product.id} className="overflow-hidden">
+                    {product.image_url && (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
                         />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Comment (optional)</label>
-                  <Textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Share your experience..."
-                    rows={4}
-                  />
-                </div>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Submitting...' : 'Submit Review'}
-                </Button>
-              </form>
-            </Card>
-          ) : (
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground mb-4">Sign in to leave a review</p>
-              <Button asChild>
-                <Link to="/auth">Sign In</Link>
-              </Button>
-            </Card>
-          )}
+                      </div>
+                    )}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold text-lg">{product.name}</h3>
+                      {product.description && (
+                        <p className="text-sm text-muted-foreground">{product.description}</p>
+                      )}
+                      <p className="text-xl font-bold text-primary">
+                        {product.price.toLocaleString()} UZS
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-          {/* Reviews List */}
-          {reviews.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <Card key={review.id} className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="font-semibold">{review.profiles?.full_name || 'Anonymous'}</p>
-                      <div className="flex gap-1 mt-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
+          {/* Reviews Tab */}
+          <TabsContent value="reviews" className="space-y-6 mt-6">
+            {user ? (
+              <Card className="p-6">
+                <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
+                <form onSubmit={handleSubmitReview} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Rating</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setRating(star)}
+                          className="transition-colors"
+                        >
                           <Star
-                            key={star}
-                            className={`h-4 w-4 ${
-                              star <= review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                            className={`h-8 w-8 ${
+                              star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground'
                             }`}
                           />
-                        ))}
-                      </div>
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(review.created_at).toLocaleDateString()}
-                    </p>
                   </div>
-                  {review.comment && (
-                    <p className="text-muted-foreground">{review.comment}</p>
-                  )}
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+                    <Textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Share your experience..."
+                      rows={4}
+                    />
+                  </div>
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? 'Submitting...' : 'Submit Review'}
+                  </Button>
+                </form>
+              </Card>
+            ) : (
+              <Card className="p-6 text-center">
+                <p className="text-muted-foreground mb-4">Sign in to leave a review</p>
+                <Button asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+              </Card>
+            )}
+
+            {reviews.length === 0 ? (
+              <Card className="p-12 text-center">
+                <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <Card key={review.id} className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="font-semibold">{review.profiles?.full_name || 'Anonymous'}</p>
+                        <div className="flex gap-1 mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    {review.comment && (
+                      <p className="text-muted-foreground">{review.comment}</p>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages" className="mt-6">
+            <StoreMessages storeId={id!} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

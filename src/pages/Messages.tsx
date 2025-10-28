@@ -15,6 +15,8 @@ interface Conversation {
   last_message_time: string;
   unread_count: number;
   is_owner: boolean;
+  last_sender_name: string;
+  is_last_sender_current_user: boolean;
 }
 
 const Messages = () => {
@@ -91,6 +93,10 @@ const Messages = () => {
           stores (
             name,
             owner_id
+          ),
+          profiles (
+            full_name,
+            email
           )
         `)
         .eq('user_id', currentUserId)
@@ -113,6 +119,10 @@ const Messages = () => {
             stores (
               name,
               owner_id
+            ),
+            profiles (
+              full_name,
+              email
             )
           `)
           .in('store_id', ownedStoreIds)
@@ -144,6 +154,9 @@ const Messages = () => {
              (!isOwner && m.sender_type === 'owner'))
           ).length;
 
+          const senderName = msg.profiles?.full_name || msg.profiles?.email || 'Unknown';
+          const isCurrentUserSender = msg.user_id === currentUserId;
+
           conversationsMap.set(storeId, {
             store_id: storeId,
             store_name: msg.stores?.name || 'Unknown Store',
@@ -151,6 +164,8 @@ const Messages = () => {
             last_message_time: msg.created_at,
             unread_count: unreadCount,
             is_owner: isOwner,
+            last_sender_name: senderName,
+            is_last_sender_current_user: isCurrentUserSender,
           });
         }
       });
@@ -222,6 +237,11 @@ const Messages = () => {
                         )}
                       </div>
                       <p className="text-muted-foreground text-sm line-clamp-2">
+                        <span className="font-medium">
+                          {conversation.is_last_sender_current_user 
+                            ? t('messages.you') 
+                            : conversation.last_sender_name}:
+                        </span>{' '}
                         {conversation.last_message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">

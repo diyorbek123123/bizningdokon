@@ -27,7 +27,29 @@ const Messages = () => {
 
   useEffect(() => {
     checkUserAndFetchConversations();
-  }, []);
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('messages-list-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          if (userId) {
+            fetchConversations(userId);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   const checkUserAndFetchConversations = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -48,8 +70,16 @@ const Messages = () => {
 
   const fetchConversations = async (currentUserId: string) => {
     try {
-      // Get messages where user is involved
-      const { data: messages, error: messagesError } = await supabase
+      // First, get stores owned by user
+      const { data: ownedStores } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', currentUserId);
+
+      const ownedStoreIds = ownedStores?.map(s => s.id) || [];
+
+      // Get messages where user is the sender OR messages for stores they own
+      const { data: userMessages, error: userMessagesError } = await supabase
         .from('messages')
         .select(`
           store_id,
@@ -57,29 +87,61 @@ const Messages = () => {
           created_at,
           sender_type,
           is_read,
+          user_id,
           stores (
             name,
             owner_id
           )
         `)
-        .or(`user_id.eq.${currentUserId},stores.owner_id.eq.${currentUserId}`)
+        .eq('user_id', currentUserId)
         .order('created_at', { ascending: false });
 
-      if (messagesError) throw messagesError;
+      if (userMessagesError) throw userMessagesError;
+
+      // Get messages for stores owned by user
+      let ownerMessages: any[] = [];
+      if (ownedStoreIds.length > 0) {
+        const { data, error: ownerMessagesError } = await supabase
+          .from('messages')
+          .select(`
+            store_id,
+            message,
+            created_at,
+            sender_type,
+            is_read,
+            user_id,
+            stores (
+              name,
+              owner_id
+            )
+          `)
+          .in('store_id', ownedStoreIds)
+          .order('created_at', { ascending: false });
+
+        if (ownerMessagesError) throw ownerMessagesError;
+        ownerMessages = data || [];
+      }
+
+      // Combine and deduplicate messages
+      const allMessages = [...(userMessages || []), ...ownerMessages];
+      const uniqueMessages = Array.from(
+        new Map(allMessages.map(m => [m.created_at + m.store_id + m.message, m])).values()
+      );
 
       // Group messages by store
       const conversationsMap = new Map<string, Conversation>();
       
-      messages?.forEach((msg: any) => {
+      uniqueMessages.forEach((msg: any) => {
         const storeId = msg.store_id;
-        const isOwner = msg.stores?.owner_id === currentUserId;
+        const isOwner = ownedStoreIds.includes(storeId);
         
         if (!conversationsMap.has(storeId)) {
           // Count unread messages
-          const unreadCount = messages.filter((m: any) => 
+          const unreadCount = uniqueMessages.filter((m: any) => 
             m.store_id === storeId && 
             !m.is_read && 
-            ((isOwner && m.sender_type === 'customer') || (!isOwner && m.sender_type === 'owner'))
+            ((isOwner && m.sender_type === 'customer' && m.user_id !== currentUserId) || 
+             (!isOwner && m.sender_type === 'owner'))
           ).length;
 
           conversationsMap.set(storeId, {

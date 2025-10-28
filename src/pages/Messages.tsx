@@ -93,10 +93,6 @@ const Messages = () => {
           stores (
             name,
             owner_id
-          ),
-          profiles (
-            full_name,
-            email
           )
         `)
         .eq('user_id', currentUserId)
@@ -119,10 +115,6 @@ const Messages = () => {
             stores (
               name,
               owner_id
-            ),
-            profiles (
-              full_name,
-              email
             )
           `)
           .in('store_id', ownedStoreIds)
@@ -132,42 +124,44 @@ const Messages = () => {
         ownerMessages = data || [];
       }
 
-      // Combine and deduplicate messages
+      // Combine and sort messages by latest timestamp
       const allMessages = [...(userMessages || []), ...ownerMessages];
-      const uniqueMessages = Array.from(
-        new Map(allMessages.map(m => [m.created_at + m.store_id + m.message, m])).values()
-      );
+      allMessages.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      // Group messages by store
+      // Group by store and pick the latest message per store
       const conversationsMap = new Map<string, Conversation>();
-      
-      uniqueMessages.forEach((msg: any) => {
+
+      allMessages.forEach((msg: any) => {
         const storeId = msg.store_id;
+        if (conversationsMap.has(storeId)) return;
+
         const isOwner = ownedStoreIds.includes(storeId);
-        
-        if (!conversationsMap.has(storeId)) {
-          // Count unread messages
-          const unreadCount = uniqueMessages.filter((m: any) => 
-            m.store_id === storeId && 
-            !m.is_read && 
-            ((isOwner && m.sender_type === 'customer' && m.user_id !== currentUserId) || 
-             (!isOwner && m.sender_type === 'owner'))
-          ).length;
 
-          const senderName = msg.profiles?.full_name || msg.profiles?.email || 'Unknown';
-          const isCurrentUserSender = msg.user_id === currentUserId;
+        // Count unread messages for this store for the current user
+        const unreadCount = allMessages.filter((m: any) =>
+          m.store_id === storeId &&
+          !m.is_read &&
+          (
+            // If current user owns this store, unread are customer-sent
+            (isOwner && m.sender_type === 'customer') ||
+            // If current user is a customer, unread are owner-sent
+            (!isOwner && m.sender_type === 'owner')
+          )
+        ).length;
 
-          conversationsMap.set(storeId, {
-            store_id: storeId,
-            store_name: msg.stores?.name || 'Unknown Store',
-            last_message: msg.message,
-            last_message_time: msg.created_at,
-            unread_count: unreadCount,
-            is_owner: isOwner,
-            last_sender_name: senderName,
-            is_last_sender_current_user: isCurrentUserSender,
-          });
-        }
+        const isCurrentUserSender = msg.sender_type === 'customer' && msg.user_id === currentUserId;
+        const lastSenderName = isCurrentUserSender ? 'You' : (msg.sender_type === 'owner' ? 'Owner' : 'Customer');
+
+        conversationsMap.set(storeId, {
+          store_id: storeId,
+          store_name: msg.stores?.name || 'Unknown Store',
+          last_message: msg.message,
+          last_message_time: msg.created_at,
+          unread_count: unreadCount,
+          is_owner: isOwner,
+          last_sender_name: lastSenderName,
+          is_last_sender_current_user: isCurrentUserSender,
+        });
       });
 
       setConversations(Array.from(conversationsMap.values()));

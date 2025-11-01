@@ -96,93 +96,94 @@ export const StoreCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl relative rounded-2xl">
+    <Card className="group overflow-hidden transition-smooth hover:shadow-float hover:-translate-y-1 relative rounded-2xl border-2 border-border/50 hover:border-primary/30 bg-gradient-to-br from-card via-card to-muted/20">
       <button
         onClick={toggleFavorite}
-        className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background transition-colors"
+        className="absolute top-4 right-4 z-10 p-2.5 rounded-full glass-card glass-card-dark shadow-md hover:shadow-lg hover:scale-110 transition-smooth"
       >
-        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
+        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
       </button>
 
-      <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
+      <div className="aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/5 via-primary-glow/5 to-accent/5 relative">
         {photo_url ? (
           <img
             src={photo_url}
             alt={name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-smooth group-hover:scale-110"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 to-primary-glow/10">
-            <span className="text-6xl font-bold text-muted-foreground opacity-20">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 via-primary-glow/10 to-accent/10">
+            <span className="text-7xl font-bold text-primary/20 group-hover:text-primary/30 transition-smooth">
               {name.charAt(0)}
             </span>
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
       </div>
 
-      <div className="p-4 space-y-3">
+      <div className="p-5 space-y-3.5">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-semibold line-clamp-1 flex-1">{name}</h3>
+          <h3 className="text-xl font-bold line-clamp-1 flex-1 text-foreground group-hover:text-primary transition-smooth">{name}</h3>
           {rating !== undefined && rating > 0 && (
-            <div className="flex items-center gap-1 text-sm font-medium">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span>{rating.toFixed(1)}</span>
+            <div className="flex items-center gap-1.5 text-sm font-semibold bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 rounded-full">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+              <span className="text-amber-700 dark:text-amber-400">{rating.toFixed(1)}</span>
               {review_count !== undefined && review_count > 0 && (
-                <span className="text-muted-foreground">({review_count})</span>
+                <span className="text-amber-600/70 dark:text-amber-500/70">({review_count})</span>
               )}
             </div>
           )}
         </div>
 
         {description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{description}</p>
         )}
 
         {category && (
-          <Badge variant="secondary" className="rounded-full">
+          <Badge variant="secondary" className="rounded-full px-3 py-1 font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-smooth">
             {category}
           </Badge>
         )}
 
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="h-4 w-4 flex-shrink-0" />
+        <div className="space-y-2.5 text-sm">
+          <div className="flex items-center gap-2.5 text-muted-foreground group/item hover:text-foreground transition-smooth">
+            <MapPin className="h-4 w-4 flex-shrink-0 text-primary" />
             <span className="line-clamp-1 flex-1">{address}</span>
             {distance !== null && distance !== undefined && (
-              <span className="font-medium whitespace-nowrap">{distance.toFixed(1)} km</span>
+              <span className="font-semibold text-primary whitespace-nowrap bg-primary/10 px-2 py-0.5 rounded-full text-xs">{distance.toFixed(1)} km</span>
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone className="h-4 w-4 flex-shrink-0" />
-            <a href={`tel:${phone}`} className="hover:text-primary transition-colors">
+          <div className="flex items-center gap-2.5 text-muted-foreground group/item hover:text-foreground transition-smooth">
+            <Phone className="h-4 w-4 flex-shrink-0 text-primary" />
+            <a href={`tel:${phone}`} className="hover:text-primary transition-smooth font-medium">
               {phone}
             </a>
           </div>
 
           {(open_time || close_time) && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 flex-shrink-0" />
-              <span className={status.open ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>
+            <div className="flex items-center gap-2.5">
+              <Clock className="h-4 w-4 flex-shrink-0 text-primary" />
+              <span className={`font-medium ${status.open ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
                 {status.text}
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2.5 pt-3">
           <Button
             onClick={openDirections}
             variant="outline"
             size="sm"
-            className="flex-1 gap-2"
+            className="flex-1 gap-2 border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-smooth font-semibold"
           >
             <Navigation2 className="h-4 w-4" />
             Yo'nalish
           </Button>
           <Button
             asChild
-            className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+            className="flex-1 gradient-warm shadow-warm-accent hover:shadow-lg hover:scale-105 transition-smooth font-semibold"
             size="sm"
           >
             <Link to={`/store/${id}`}>

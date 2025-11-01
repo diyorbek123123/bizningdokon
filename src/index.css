@@ -9,53 +9,55 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 160 20% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 160 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 160 20% 15%;
 
-    --primary: 234 62% 44%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 253 56% 58%;
+    --primary-glow: 174 72% 47%;
 
-    --secondary: 45 93% 58%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 38 92% 50%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 160 20% 96%;
+    --muted-foreground: 160 10% 45%;
 
-    --accent: 45 93% 58%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 234 62% 44%;
+    --border: 160 20% 90%;
+    --input: 160 20% 90%;
+    --ring: 160 84% 39%;
 
     --radius: 1rem;
     
-    /* Professional gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(234, 62%, 44%) 0%, hsl(253, 56%, 58%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(234, 62%, 44%) 0%, hsl(253, 56%, 58%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(210, 40%, 98%) 0%, hsl(0, 0%, 100%) 100%);
+    /* Professional Warm Business Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160, 84%, 39%) 0%, hsl(174, 72%, 47%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(160, 84%, 39%) 0%, hsl(174, 72%, 47%) 50%, hsl(38, 92%, 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(160, 30%, 98%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(160, 25%, 97%) 0%, hsl(0, 0%, 100%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(25, 95%, 53%) 100%);
     
-    /* Professional shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(234, 62%, 44%, 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(234, 62%, 44%, 0.1), 0 2px 4px -1px hsl(234, 62%, 44%, 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(234, 62%, 44%, 0.1), 0 4px 6px -2px hsl(234, 62%, 44%, 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(234, 62%, 44%, 0.1), 0 10px 10px -5px hsl(234, 62%, 44%, 0.04);
-    --shadow-glow: 0 0 40px hsl(253, 56%, 58%, 0.3);
+    /* Professional Soft Shadows */
+    --shadow-sm: 0 1px 3px 0 hsl(160, 84%, 39%, 0.08);
+    --shadow-md: 0 4px 8px -2px hsl(160, 84%, 39%, 0.12), 0 2px 4px -1px hsl(160, 84%, 39%, 0.08);
+    --shadow-lg: 0 12px 20px -6px hsl(160, 84%, 39%, 0.15), 0 4px 8px -2px hsl(160, 84%, 39%, 0.08);
+    --shadow-xl: 0 24px 32px -8px hsl(160, 84%, 39%, 0.18), 0 8px 16px -4px hsl(160, 84%, 39%, 0.1);
+    --shadow-glow: 0 0 48px hsl(174, 72%, 47%, 0.35);
+    --shadow-warm: 0 8px 24px -4px hsl(38, 92%, 50%, 0.25);
     
-    /* Smooth transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Smooth Professional Transitions */
+    --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --transition-fast: all 0.15s ease-in-out;
+    --transition-fast: all 0.2s ease-in-out;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -68,34 +70,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 160 20% 10%;
+    --foreground: 160 20% 96%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 160 20% 13%;
+    --card-foreground: 160 20% 96%;
 
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 160 20% 13%;
+    --popover-foreground: 160 20% 96%;
 
-    --primary: 234 62% 44%;
+    --primary: 160 84% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 253 56% 58%;
+    --primary-glow: 174 72% 52%;
 
-    --secondary: 45 93% 58%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 38 92% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 160 15% 18%;
+    --muted-foreground: 160 10% 65%;
 
-    --accent: 45 93% 58%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 160 20% 96%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 234 62% 44%;
+    --border: 160 15% 18%;
+    --input: 160 15% 18%;
+    --ring: 160 84% 45%;
     --sidebar-background: 240 6% 10%;
     --sidebar-foreground: 240 5% 96%;
     --sidebar-primary: 234 62% 44%;
@@ -114,11 +116,58 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+  
+  .glass-card-dark {
+    @apply dark:bg-card/80 dark:backdrop-blur-xl dark:border-white/10;
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .shadow-float {
+    box-shadow: var(--shadow-xl);
+  }
+  
+  .shadow-glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-warm-accent {
+    box-shadow: var(--shadow-warm);
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+  
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  .transition-bounce {
+    transition: var(--transition-bounce);
   }
 }

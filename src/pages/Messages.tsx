@@ -17,6 +17,7 @@ interface Conversation {
   is_owner: boolean;
   last_sender_name: string;
   is_last_sender_current_user: boolean;
+  other_user_id?: string;
 }
 
 const Messages = () => {
@@ -133,26 +134,23 @@ const Messages = () => {
 
       allMessages.forEach((msg: any) => {
         const storeId = msg.store_id;
-        if (conversationsMap.has(storeId)) return;
-
         const isOwner = ownedStoreIds.includes(storeId);
+        const key = isOwner ? `${storeId}:${msg.user_id}` : storeId;
+        if (conversationsMap.has(key)) return;
 
-        // Count unread messages for this store for the current user
+        // Count unread messages for this store (and user thread if owner)
         const unreadCount = allMessages.filter((m: any) =>
           m.store_id === storeId &&
+          (!isOwner || m.user_id === msg.user_id) &&
           !m.is_read &&
-          (
-            // If current user owns this store, unread are customer-sent
-            (isOwner && m.sender_type === 'customer') ||
-            // If current user is a customer, unread are owner-sent
-            (!isOwner && m.sender_type === 'owner')
-          )
+          ((isOwner && m.sender_type === 'customer') || (!isOwner && m.sender_type === 'owner'))
         ).length;
 
-        const isCurrentUserSender = msg.sender_type === 'customer' && msg.user_id === currentUserId;
+        const isCurrentUserSender = (!isOwner && msg.sender_type === 'customer' && msg.user_id === currentUserId) ||
+          (isOwner && msg.sender_type === 'owner');
         const lastSenderName = isCurrentUserSender ? 'You' : (msg.sender_type === 'owner' ? 'Owner' : 'Customer');
 
-        conversationsMap.set(storeId, {
+        conversationsMap.set(key, {
           store_id: storeId,
           store_name: msg.stores?.name || 'Unknown Store',
           last_message: msg.message,
@@ -161,6 +159,7 @@ const Messages = () => {
           is_owner: isOwner,
           last_sender_name: lastSenderName,
           is_last_sender_current_user: isCurrentUserSender,
+          other_user_id: isOwner ? msg.user_id : undefined,
         });
       });
 
@@ -212,7 +211,11 @@ const Messages = () => {
               <Card
                 key={conversation.store_id}
                 className="p-6 hover:bg-accent/50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/store/${conversation.store_id}`)}
+                onClick={() =>
+                  conversation.is_owner && conversation.other_user_id
+                    ? navigate(`/store/${conversation.store_id}?with=${conversation.other_user_id}`)
+                    : navigate(`/store/${conversation.store_id}`)
+                }
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4 flex-1">

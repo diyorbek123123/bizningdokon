@@ -18,9 +18,10 @@ interface Message {
 interface StoreMessagesProps {
   storeId: string;
   isOwner?: boolean;
+  recipientUserId?: string;
 }
 
-export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) => {
+export const StoreMessages = ({ storeId, isOwner = false, recipientUserId }: StoreMessagesProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -64,16 +65,26 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
         .eq('id', storeId)
         .single();
       
-      setIsStoreOwner(store?.owner_id === user.id);
+      setIsStoreOwner(isOwner || store?.owner_id === user.id);
     }
   };
 
   const fetchMessages = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('messages')
       .select('*')
       .eq('store_id', storeId)
       .order('created_at', { ascending: true });
+
+    if (isStoreOwner) {
+      if (recipientUserId) {
+        query = query.eq('user_id', recipientUserId);
+      }
+    } else if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setMessages(data as Message[]);
@@ -83,11 +94,21 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
   const sendMessage = async () => {
     if (!newMessage.trim() || !userId) return;
 
+    const targetUserId = isStoreOwner ? recipientUserId : userId;
+    if (isStoreOwner && !recipientUserId) {
+      toast({
+        title: t('common.error'),
+        description: 'Select a conversation first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.from('messages').insert({
         store_id: storeId,
-        user_id: userId,
+        user_id: targetUserId,
         message: newMessage.trim(),
         sender_type: isStoreOwner ? 'owner' : 'customer'
       });
@@ -135,12 +156,12 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
             <div
               key={msg.id}
               className={`flex ${
-                msg.user_id === userId ? 'justify-end' : 'justify-start'
+                (isStoreOwner ? msg.sender_type === 'owner' : msg.sender_type === 'customer') ? 'justify-end' : 'justify-start'
               }`}
             >
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  msg.user_id === userId
+                  (isStoreOwner ? msg.sender_type === 'owner' : msg.sender_type === 'customer')
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted'
                 }`}
@@ -160,8 +181,8 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
           <Textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder={t('messages.placeholder')}
-            disabled={isLoading}
+            placeholder={isStoreOwner && !recipientUserId ? 'Select a conversation to reply...' : t('messages.placeholder')}
+            disabled={isLoading || (isStoreOwner && !recipientUserId)}
             className="min-h-[60px]"
             onKeyPress={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -170,7 +191,7 @@ export const StoreMessages = ({ storeId, isOwner = false }: StoreMessagesProps) 
               }
             }}
           />
-          <Button onClick={sendMessage} disabled={isLoading || !newMessage.trim()}>
+          <Button onClick={sendMessage} disabled={isLoading || !newMessage.trim() || (isStoreOwner && !recipientUserId)}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

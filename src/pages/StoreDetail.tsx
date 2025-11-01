@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,8 @@ interface Review {
 
 const StoreDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const withUser = searchParams.get('with') || undefined;
   const { t } = useTranslation();
   const { toast } = useToast();
   const [store, setStore] = useState<Store | null>(null);
@@ -430,7 +432,7 @@ const StoreDetail = () => {
 
           {/* Messages Tab */}
           <TabsContent value="messages" className="mt-6">
-            <StoreMessages storeId={id!} />
+            <StoreMessages storeId={id!} recipientUserId={withUser} />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +51,7 @@ export const StoreCard = ({
 }: StoreCardProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [user, setUser] = useState<any>(null);
   
@@ -74,7 +75,8 @@ export const StoreCard = ({
     setIsFavorite(!!data);
   };
 
-  const toggleFavorite = async () => {
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!user) {
       toast({ title: 'Login required', description: 'Please login to save favorites', variant: 'destructive' });
       return;
@@ -91,12 +93,17 @@ export const StoreCard = ({
     }
   };
 
-  const openDirections = () => {
+  const openDirections = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
   };
 
+  const handleRowClick = () => {
+    navigate(`/store/${id}`);
+  };
+
   return (
-    <Card className="group overflow-hidden transition-smooth hover:shadow-float relative rounded-xl border border-border/50 hover:border-primary/30 bg-card/80 backdrop-blur-sm">
+    <Card className="group overflow-hidden transition-smooth hover:shadow-float relative rounded-xl border border-border/50 hover:border-primary/30 bg-card/80 backdrop-blur-sm cursor-pointer" onClick={handleRowClick}>
       <div className="flex items-center gap-4 p-4">
         {/* Image/Icon */}
         <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
@@ -184,7 +191,7 @@ export const StoreCard = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button
             onClick={openDirections}
             variant="outline"
@@ -195,13 +202,11 @@ export const StoreCard = ({
             <span className="hidden md:inline">Yo'nalish</span>
           </Button>
           <Button
-            asChild
+            onClick={() => navigate(`/store/${id}`)}
             className="gradient-warm shadow-warm-accent hover:shadow-lg hover:scale-105 transition-smooth px-3"
             size="sm"
           >
-            <Link to={`/store/${id}`}>
-              Ko'rish
-            </Link>
+            Ko'rish
           </Button>
         </div>
       </div>

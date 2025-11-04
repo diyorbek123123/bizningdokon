@@ -183,9 +183,9 @@ const Index = () => {
 
           <TabsContent value="all" className="animate-fade-in">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-96 bg-gradient-to-br from-muted to-muted/50 animate-pulse rounded-2xl shadow-md" />
+              <div className="space-y-3">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-24 bg-gradient-to-br from-muted to-muted/50 animate-pulse rounded-xl shadow-md" />
                 ))}
               </div>
             ) : filteredStores.length === 0 ? (
@@ -195,9 +195,9 @@ const Index = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+              <div className="space-y-3">
                 {filteredStores.map((store, index) => (
-                  <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                  <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.03}s` }}>
                     <StoreCard {...store} />
                   </div>
                 ))}
@@ -214,9 +214,9 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground">{t('common.clickHeart')}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                <div className="space-y-3">
                   {favoriteStores.map((store, index) => (
-                    <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                    <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.03}s` }}>
                       <StoreCard {...store} />
                     </div>
                   ))}

@@ -96,115 +96,113 @@ export const StoreCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden transition-smooth hover:shadow-float relative rounded-2xl border-2 border-border/50 hover:border-primary/30 bg-gradient-to-br from-card via-card to-muted/20">
-      <div className="flex flex-col sm:flex-row gap-0 sm:gap-4">
-        {/* Image Section */}
-        <div className="relative w-full sm:w-64 h-48 sm:h-auto flex-shrink-0">
+    <Card className="group overflow-hidden transition-smooth hover:shadow-float relative rounded-xl border border-border/50 hover:border-primary/30 bg-card/80 backdrop-blur-sm">
+      <div className="flex items-center gap-4 p-4">
+        {/* Image/Icon */}
+        <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
           <button
             onClick={toggleFavorite}
-            className="absolute top-3 right-3 z-10 p-2 rounded-full glass-card glass-card-dark shadow-md hover:shadow-lg hover:scale-110 transition-smooth"
+            className="absolute top-1 right-1 z-10 p-1.5 rounded-full glass-card glass-card-dark shadow-md hover:shadow-lg hover:scale-110 transition-smooth"
           >
-            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+            <Heart className={`h-3 w-3 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
           </button>
 
-          <div className="w-full h-full overflow-hidden bg-gradient-to-br from-primary/5 via-primary-glow/5 to-accent/5">
-            {photo_url ? (
-              <img
-                src={photo_url}
-                alt={name}
-                className="h-full w-full object-cover transition-smooth group-hover:scale-110"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 via-primary-glow/10 to-accent/10">
-                <span className="text-5xl font-bold text-primary/20 group-hover:text-primary/30 transition-smooth">
-                  {name.charAt(0)}
-                </span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
-          </div>
+          {photo_url ? (
+            <img
+              src={photo_url}
+              alt={name}
+              className="h-full w-full object-cover transition-smooth group-hover:scale-110"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 via-primary-glow/10 to-accent/10">
+              <span className="text-2xl font-bold text-primary/30">
+                {name.charAt(0)}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Information Section */}
-        <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
-          <div className="space-y-3">
-            {/* Title and Rating */}
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-xl font-bold line-clamp-1 flex-1 text-foreground group-hover:text-primary transition-smooth">
-                {name}
-              </h3>
-              {rating !== undefined && rating > 0 && (
-                <div className="flex items-center gap-1.5 text-sm font-semibold bg-amber-50 dark:bg-amber-950/30 px-3 py-1.5 rounded-full flex-shrink-0">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-                  <span className="text-amber-700 dark:text-amber-400">{rating.toFixed(1)}</span>
-                  {review_count !== undefined && review_count > 0 && (
-                    <span className="text-amber-600/70 dark:text-amber-500/70 text-xs">({review_count})</span>
-                  )}
-                </div>
-              )}
+        {/* Store Name & Category */}
+        <div className="flex-1 min-w-[180px] max-w-[220px]">
+          <h3 className="text-base font-bold line-clamp-1 text-foreground group-hover:text-primary transition-smooth mb-1">
+            {name}
+          </h3>
+          {category && (
+            <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+              {category}
+            </Badge>
+          )}
+        </div>
+
+        {/* Rating */}
+        <div className="flex-shrink-0 w-24 text-center">
+          {rating !== undefined && rating > 0 ? (
+            <div className="inline-flex items-center gap-1.5 text-sm font-semibold bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1.5 rounded-lg">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+              <span className="text-amber-700 dark:text-amber-400">{rating.toFixed(1)}</span>
             </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">N/A</span>
+          )}
+        </div>
 
-            {/* Category Badge */}
-            {category && (
-              <Badge variant="secondary" className="rounded-full px-3 py-1 font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-smooth w-fit">
-                {category}
-              </Badge>
-            )}
+        {/* Distance */}
+        <div className="flex-shrink-0 w-20 text-center">
+          {distance !== null && distance !== undefined ? (
+            <span className="inline-block font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg text-sm">
+              {distance.toFixed(1)} km
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">-</span>
+          )}
+        </div>
 
-            {/* Store Details */}
-            <div className="space-y-2 text-sm">
-              {/* Address with Distance */}
-              <div className="flex items-start gap-2.5 text-muted-foreground group/item hover:text-foreground transition-smooth">
-                <MapPin className="h-4 w-4 flex-shrink-0 text-primary mt-0.5" />
-                <span className="line-clamp-1 flex-1">{address}</span>
-                {distance !== null && distance !== undefined && (
-                  <span className="font-semibold text-primary whitespace-nowrap bg-primary/10 px-2 py-0.5 rounded-full text-xs flex-shrink-0">
-                    {distance.toFixed(1)} km
-                  </span>
-                )}
-              </div>
+        {/* Address */}
+        <div className="hidden lg:flex items-center gap-2 flex-1 min-w-[200px] max-w-[280px]">
+          <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+          <span className="text-sm text-muted-foreground line-clamp-1">{address}</span>
+        </div>
 
-              {/* Phone */}
-              <div className="flex items-center gap-2.5 text-muted-foreground group/item hover:text-foreground transition-smooth">
-                <Phone className="h-4 w-4 flex-shrink-0 text-primary" />
-                <a href={`tel:${phone}`} className="hover:text-primary transition-smooth font-medium">
-                  {phone}
-                </a>
-              </div>
+        {/* Phone */}
+        <div className="hidden xl:flex items-center gap-2 flex-shrink-0 w-36">
+          <Phone className="h-4 w-4 text-primary" />
+          <a href={`tel:${phone}`} className="text-sm text-muted-foreground hover:text-primary transition-smooth font-medium line-clamp-1">
+            {phone}
+          </a>
+        </div>
 
-              {/* Opening Hours */}
-              {(open_time || close_time) && (
-                <div className="flex items-center gap-2.5">
-                  <Clock className="h-4 w-4 flex-shrink-0 text-primary" />
-                  <span className={`font-medium ${status.open ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                    {status.text}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Opening Hours */}
+        <div className="hidden xl:flex items-center gap-2 flex-shrink-0 w-40">
+          <Clock className="h-4 w-4 text-primary" />
+          {(open_time || close_time) ? (
+            <span className={`text-sm font-medium ${status.open ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+              {status.text}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">-</span>
+          )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2.5 pt-4 mt-auto">
-            <Button
-              onClick={openDirections}
-              variant="outline"
-              size="sm"
-              className="flex-1 gap-2 border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-smooth font-semibold"
-            >
-              <Navigation2 className="h-4 w-4" />
-              Yo'nalish
-            </Button>
-            <Button
-              asChild
-              className="flex-1 gradient-warm shadow-warm-accent hover:shadow-lg hover:scale-105 transition-smooth font-semibold"
-              size="sm"
-            >
-              <Link to={`/store/${id}`}>
-                Ko'rish
-              </Link>
-            </Button>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex gap-2 flex-shrink-0">
+          <Button
+            onClick={openDirections}
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border hover:border-primary hover:bg-primary/5 hover:text-primary transition-smooth px-3"
+          >
+            <Navigation2 className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">Yo'nalish</span>
+          </Button>
+          <Button
+            asChild
+            className="gradient-warm shadow-warm-accent hover:shadow-lg hover:scale-105 transition-smooth px-3"
+            size="sm"
+          >
+            <Link to={`/store/${id}`}>
+              Ko'rish
+            </Link>
+          </Button>
         </div>
       </div>
     </Card>

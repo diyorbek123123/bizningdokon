@@ -275,16 +275,51 @@ const StoreDetail = () => {
                   </span>
                 </div>
               )}
-              <Button 
-                className="mt-4"
-                onClick={() => {
-                  const url = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`;
-                  window.open(url, '_blank');
-                }}
-              >
-                <NavigationIcon className="mr-2 h-4 w-4" />
-                Get Directions
-              </Button>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-semibold text-muted-foreground mb-3">Get Directions:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const url = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <NavigationIcon className="mr-2 h-4 w-4" />
+                    Google Maps
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const url = `https://yandex.com/maps/?rtext=~${store.latitude},${store.longitude}&rtt=auto`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <NavigationIcon className="mr-2 h-4 w-4" />
+                    Yandex Maps
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const url = `https://2gis.com/directions?m=${store.longitude}%2C${store.latitude}`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <NavigationIcon className="mr-2 h-4 w-4" />
+                    2GIS
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const url = `https://maps.apple.com/?daddr=${store.latitude},${store.longitude}`;
+                      window.open(url, '_blank');
+                    }}
+                  >
+                    <NavigationIcon className="mr-2 h-4 w-4" />
+                    Apple Maps
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </Card>

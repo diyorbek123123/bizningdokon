@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
 import OwnerAdmin from "./pages/OwnerAdmin";
 import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/owner-admin" element={<OwnerAdmin />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/chat/:storeId" element={<Chat />} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -213,8 +213,8 @@ const Messages = () => {
                 className="p-6 hover:bg-accent/50 cursor-pointer transition-colors"
                 onClick={() =>
                   conversation.is_owner && conversation.other_user_id
-                    ? navigate(`/store/${conversation.store_id}?with=${conversation.other_user_id}`)
-                    : navigate(`/store/${conversation.store_id}`)
+                    ? navigate(`/chat/${conversation.store_id}?with=${conversation.other_user_id}`)
+                    : navigate(`/chat/${conversation.store_id}`)
                 }
               >
                 <div className="flex items-start justify-between">

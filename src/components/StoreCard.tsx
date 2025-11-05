@@ -104,7 +104,87 @@ export const StoreCard = ({
 
   return (
     <Card className="group overflow-hidden transition-smooth hover:shadow-float relative rounded-xl border border-border/50 hover:border-primary/30 bg-card/80 backdrop-blur-sm cursor-pointer" onClick={handleRowClick}>
-      <div className="flex items-center gap-4 p-4">
+      {/* Mobile Layout */}
+      <div className="lg:hidden p-3">
+        <div className="flex items-start gap-3">
+          {/* Image/Icon */}
+          <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden">
+            <button
+              onClick={toggleFavorite}
+              className="absolute top-1 right-1 z-10 p-1 rounded-full glass-card glass-card-dark shadow-md hover:shadow-lg hover:scale-110 transition-smooth"
+            >
+              <Heart className={`h-3 w-3 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+            </button>
+
+            {photo_url ? (
+              <img
+                src={photo_url}
+                alt={name}
+                className="h-full w-full object-cover transition-smooth group-hover:scale-110"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 via-primary-glow/10 to-accent/10">
+                <span className="text-xl font-bold text-primary/30">
+                  {name.charAt(0)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {/* Name & Category */}
+            <h3 className="text-sm font-bold line-clamp-1 text-foreground group-hover:text-primary transition-smooth mb-1">
+              {name}
+            </h3>
+            
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              {category && (
+                <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+                  {category}
+                </Badge>
+              )}
+              
+              {/* Rating */}
+              {rating !== undefined && rating > 0 ? (
+                <div className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-lg">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                  <span className="text-amber-700 dark:text-amber-400">{rating.toFixed(1)}</span>
+                </div>
+              ) : null}
+
+              {/* Distance */}
+              {distance !== null && distance !== undefined ? (
+                <span className="inline-block font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-lg text-xs">
+                  {distance.toFixed(1)} km
+                </span>
+              ) : null}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <Button
+                onClick={openDirections}
+                variant="outline"
+                size="sm"
+                className="gap-1 border hover:border-primary hover:bg-primary/5 hover:text-primary transition-smooth px-2 h-7 text-xs"
+              >
+                <Navigation2 className="h-3 w-3" />
+                Yo'nalish
+              </Button>
+              <Button
+                onClick={() => navigate(`/store/${id}`)}
+                className="gradient-warm shadow-warm-accent hover:shadow-lg hover:scale-105 transition-smooth px-2 h-7 text-xs"
+                size="sm"
+              >
+                Ko'rish
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex items-center gap-4 p-4">
         {/* Image/Icon */}
         <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
           <button

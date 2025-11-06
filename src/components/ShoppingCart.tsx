@@ -10,7 +10,7 @@ interface CartItem {
   id: string;
   product_id: string;
   quantity: number;
-  product: {
+  products: {
     name: string;
     price: number;
     image_url: string | null;
@@ -90,8 +90,7 @@ export const ShoppingCart = () => {
   };
 
   const total = cartItems.reduce((sum, item) => 
-    sum + (item.product.price * item.quantity), 0
-  );
+    sum + (item.products.price * item.quantity), 0);
 
   const deliveryFee = 100;
 
@@ -129,17 +128,17 @@ export const ShoppingCart = () => {
                 <X className="h-4 w-4" />
               </button>
               
-              {item.product.image_url && (
+              {item.products.image_url && (
                 <img
-                  src={item.product.image_url}
-                  alt={item.product.name}
+                  src={item.products.image_url}
+                  alt={item.products.name}
                   className="w-16 h-16 object-cover rounded-lg"
                 />
               )}
               
               <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-sm line-clamp-2">{item.product.name}</h4>
-                <p className="text-sm font-bold text-primary">$ {item.product.price.toFixed(2)}</p>
+                <h4 className="font-semibold text-sm line-clamp-2">{item.products.name}</h4>
+                <p className="text-sm font-bold text-primary">$ {item.products.price.toFixed(2)}</p>
                 
                 <div className="flex items-center gap-2 mt-2">
                   <button

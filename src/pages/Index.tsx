@@ -1,56 +1,89 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
-import { ShoppingCart } from '@/components/ShoppingCart';
-import { ProductCard } from '@/components/ProductCard';
+import { StoreCard } from '@/components/StoreCard';
 import { Input } from '@/components/ui/input';
-import { Search, Pizza, Coffee, IceCream, Cake } from 'lucide-react';
+import { Search, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface Product {
+interface Store {
   id: string;
   name: string;
-  price: number;
-  image_url: string | null;
-  store_id: string;
+  description: string | null;
+  phone: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  photo_url: string | null;
   category: string | null;
+  rating: number;
+  review_count: number;
+  open_time: string | null;
+  close_time: string | null;
+  created_at: string;
 }
 
-const categoryIcons: Record<string, any> = {
-  Pizzas: Pizza,
-  Empanadas: Coffee,
-  Bebidas: IceCream,
-  Postres: Cake,
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 };
 
 const Index = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
+  const [stores, setStores] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchProducts();
+    fetchStores();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) loadFavorites(data.user.id);
+    });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setUserLocation([pos.coords.latitude, pos.coords.longitude]);
+      });
+    }
   }, []);
 
-  const fetchProducts = async () => {
+  const loadFavorites = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_favorites')
+      .select('store_id')
+      .eq('user_id', userId);
+    setFavoriteIds(data?.map(f => f.store_id) || []);
+  };
+
+  const fetchStores = async () => {
     try {
       const { data, error } = await supabase
-        .from('products')
+        .from('stores')
         .select('*')
-        .order('name');
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      setStores(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching stores:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load products',
+        description: 'Failed to load stores',
         variant: 'destructive',
       });
     } finally {
@@ -58,88 +91,120 @@ const Index = () => {
     }
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const getFilteredAndSortedStores = () => {
+    let filtered = stores.filter((store) => {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = store.name.toLowerCase().includes(query) ||
+        store.description?.toLowerCase().includes(query) ||
+        store.address.toLowerCase().includes(query);
+      return matchesSearch;
+    });
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+    const storesWithDistance = filtered.map(store => ({
+      ...store,
+      distance: userLocation 
+        ? calculateDistance(userLocation[0], userLocation[1], store.latitude, store.longitude)
+        : null
+    }));
+
+    return storesWithDistance.sort((a, b) => {
+      if (a.distance === null) return 1;
+      if (b.distance === null) return -1;
+      return a.distance - b.distance;
+    });
+  };
+
+  const filteredStores = getFilteredAndSortedStores();
+  const favoriteStores = filteredStores.filter(s => favoriteIds.includes(s.id));
 
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
       
-      <main className="flex-1 ml-16 mr-80">
-        <div className="p-6">
+      <main className="flex-1 ml-16 p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">{t('hero.title')}</h1>
+          <p className="text-muted-foreground text-lg mb-6">{t('hero.subtitle')}</p>
+          
           {/* Search Bar */}
-          <div className="mb-8">
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Busco algo de nuestro menú..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 rounded-full border-2 border-border focus:border-primary"
-              />
-            </div>
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder={t('hero.search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-14 rounded-2xl border-2 border-border focus:border-primary text-base"
+            />
           </div>
-
-          {/* Categories Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">Categorías</h2>
-            <p className="text-sm text-muted-foreground">Elige nuestras deliciosas pizzas</p>
-          </div>
-
-          {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-            <TabsList className="bg-transparent gap-6 h-auto p-0 border-b border-border w-full justify-start">
-              {categories.map(category => {
-                const Icon = categoryIcons[category] || Pizza;
-                return (
-                  <TabsTrigger
-                    key={category}
-                    value={category}
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-3 gap-2 data-[state=active]:text-primary font-semibold"
-                  >
-                    <Icon className="h-5 w-5" />
-                    {category === 'all' ? 'Todo' : category}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
-
-          {/* Products Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-square bg-muted animate-pulse rounded-2xl" />
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">No products found</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image_url={product.image_url}
-                  storeId={product.store_id}
-                />
-              ))}
-            </div>
-          )}
         </div>
-      </main>
 
-      <ShoppingCart />
+        {/* Tabs */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="mb-8 bg-secondary p-1.5 rounded-xl">
+            <TabsTrigger 
+              value="all" 
+              className="rounded-lg px-6 py-2.5 font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              {t('common.allStores')} <span className="ml-2 text-xs opacity-70">({filteredStores.length})</span>
+            </TabsTrigger>
+            {user && (
+              <TabsTrigger 
+                value="favorites" 
+                className="gap-2 rounded-lg px-6 py-2.5 font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                <Heart className="h-4 w-4" />
+                {t('common.favorites')} <span className="ml-2 text-xs opacity-70">({favoriteStores.length})</span>
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="all" className="animate-fade-in">
+            {loading ? (
+              <div className="space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-28 bg-muted animate-pulse rounded-xl" />
+                ))}
+              </div>
+            ) : filteredStores.length === 0 ? (
+              <div className="text-center py-20 bg-card rounded-2xl border border-border">
+                <p className="text-muted-foreground text-lg">
+                  {searchQuery ? t('common.noStoresFound') : t('common.noStores')}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredStores.map((store, index) => (
+                  <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                    <StoreCard {...store} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {user && (
+            <TabsContent value="favorites" className="animate-fade-in">
+              {favoriteStores.length === 0 ? (
+                <div className="text-center py-20 bg-card rounded-2xl border border-border">
+                  <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-foreground text-lg font-semibold mb-2">{t('common.noFavorites')}</p>
+                  <p className="text-sm text-muted-foreground">{t('common.clickHeart')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {favoriteStores.map((store, index) => (
+                    <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                      <StoreCard {...store} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
+        </Tabs>
+      </main>
     </div>
   );
 };

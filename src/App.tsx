@@ -13,6 +13,7 @@ import ProductSearch from "./pages/ProductSearch";
 import AboutUs from "./pages/AboutUs";
 import EditAbout from "./pages/EditAbout";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
@@ -39,6 +40,8 @@ const App = () => (
             <Route path="/search" element={<ProductSearch />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/edit-about" element={<EditAbout />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/favorites" element={<Favorites />} />

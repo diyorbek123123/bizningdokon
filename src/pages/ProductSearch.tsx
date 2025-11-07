@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -183,10 +183,11 @@ const ProductSearch = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Search Products</h1>
 
@@ -312,6 +313,7 @@ const ProductSearch = () => {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

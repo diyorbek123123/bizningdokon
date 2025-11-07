@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Heart, MessageCircle, Map, User } from 'lucide-react';
+import { Home, Heart, MessageCircle, Map, User, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
@@ -29,10 +29,11 @@ export const Sidebar = () => {
   
   const navItems = [
     { icon: Home, path: '/', label: 'Home' },
+    { icon: Search, path: '/search', label: 'Search' },
     { icon: Map, path: '/map', label: 'Map' },
     { icon: MessageCircle, path: '/messages', label: 'Messages' },
     { icon: Heart, path: '/favorites', label: 'Favorites' },
-    { icon: User, path: '/auth', label: 'Account' },
+    { icon: User, path: '/profile', label: 'Profile' },
   ];
   
   return (

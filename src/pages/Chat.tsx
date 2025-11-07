@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { StoreMessages } from '@/components/StoreMessages';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -106,23 +106,26 @@ const Chat = () => {
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-32 bg-muted rounded" />
             <div className="h-96 bg-muted rounded" />
           </div>
+        </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <div className="container mx-auto px-4 py-4 md:py-8 max-w-4xl">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-4 md:py-8 max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -202,6 +205,7 @@ const Chat = () => {
             recipientUserId={recipientUserId || undefined}
           />
         </Card>
+        </div>
       </div>
     </div>
   );

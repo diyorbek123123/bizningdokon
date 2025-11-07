@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -229,10 +229,11 @@ const MapView = () => {
   }, [stores]);
 
    return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
 
-      <div className="container mx-auto px-4 py-6 lg:py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-6 lg:py-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-1">{t('map.title', { defaultValue: 'Store Map' })}</h1>
@@ -290,6 +291,7 @@ const MapView = () => {
 
         <div className="w-full h-[calc(100vh-240px)] min-h-[400px] rounded-lg shadow-lg border overflow-hidden relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
+        </div>
         </div>
       </div>
 

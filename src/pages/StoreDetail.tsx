@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -194,14 +194,16 @@ const StoreDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-64 bg-muted rounded-lg" />
             <div className="h-8 bg-muted rounded w-1/2" />
             <div className="h-4 bg-muted rounded w-3/4" />
           </div>
+        </div>
         </div>
       </div>
     );
@@ -209,23 +211,26 @@ const StoreDetail = () => {
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 text-center">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-muted-foreground">Store not found</p>
           <Button asChild className="mt-4">
             <Link to="/">Go Home</Link>
           </Button>
+        </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
           <Link to="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -470,6 +475,7 @@ const StoreDetail = () => {
             <StoreMessages storeId={id!} recipientUserId={withUser} />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );

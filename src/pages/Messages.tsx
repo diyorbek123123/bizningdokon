@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
@@ -177,24 +177,27 @@ const Messages = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/4" />
             <div className="h-32 bg-muted rounded" />
             <div className="h-32 bg-muted rounded" />
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-6">
           <MessageCircle className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">{t('messages.title')}</h1>
@@ -256,6 +259,7 @@ const Messages = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

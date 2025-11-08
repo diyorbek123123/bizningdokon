@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -205,9 +205,10 @@ const OwnerAdmin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/4 mb-8"></div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -217,15 +218,17 @@ const OwnerAdmin = () => {
             </div>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Owner Management</h1>
         
         <div className="grid gap-6">
@@ -434,6 +437,7 @@ const OwnerAdmin = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>

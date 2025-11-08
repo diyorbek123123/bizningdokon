@@ -31,27 +31,37 @@ export const StoreMessages = ({ storeId, isOwner = false, recipientUserId }: Sto
   const [isStoreOwner, setIsStoreOwner] = useState(false);
 
   useEffect(() => {
-    fetchMessages();
     checkUser();
-
-    const channel = supabase
-      .channel('messages-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `store_id=eq.${storeId}`
-        },
-        () => fetchMessages()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [storeId]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchMessages();
+
+      // Create a unique channel name for this conversation
+      const channelName = isStoreOwner && recipientUserId 
+        ? `messages-${storeId}-${recipientUserId}`
+        : `messages-${storeId}-${userId}`;
+
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages',
+            filter: `store_id=eq.${storeId}`
+          },
+          () => fetchMessages()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [storeId, userId, isStoreOwner, recipientUserId]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -70,24 +80,34 @@ export const StoreMessages = ({ storeId, isOwner = false, recipientUserId }: Sto
   };
 
   const fetchMessages = async () => {
+    if (!userId) return;
+
+    // For store owners: show only messages in conversation with recipientUserId
+    // For customers: show only their own messages to this store
     let query = supabase
       .from('messages')
       .select('*')
       .eq('store_id', storeId)
       .order('created_at', { ascending: true });
 
-    if (isStoreOwner) {
-      if (recipientUserId) {
-        query = query.eq('user_id', recipientUserId);
-      }
-    } else if (userId) {
+    if (isStoreOwner && recipientUserId) {
+      // Owner viewing a specific conversation - show all messages with that user
+      query = query.eq('user_id', recipientUserId);
+    } else if (!isStoreOwner) {
+      // Customer viewing - show only their own messages
       query = query.eq('user_id', userId);
+    } else {
+      // Owner without a specific conversation selected - don't load messages
+      setMessages([]);
+      return;
     }
 
     const { data, error } = await query;
 
     if (!error && data) {
       setMessages(data as Message[]);
+    } else if (error) {
+      console.error('Error fetching messages:', error);
     }
   };
 

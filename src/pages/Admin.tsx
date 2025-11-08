@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -393,10 +393,11 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
 
-      <div className="container mx-auto px-4 py-6 lg:py-8">
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-6 lg:py-8">
         <header className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">Complete control over stores and products</p>
@@ -855,6 +856,7 @@ const Admin = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 };

@@ -33,6 +33,8 @@ const Profile = () => {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [userReviews, setUserReviews] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -79,15 +81,17 @@ const Profile = () => {
 
   const loadReviewCount = async (userId: string) => {
     try {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('store_reviews')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
+        .select('*, stores(name, photo_url)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setReviewCount(count || 0);
+      setUserReviews(data || []);
+      setReviewCount(data?.length || 0);
     } catch (error) {
-      console.error('Error loading review count:', error);
+      console.error('Error loading reviews:', error);
     }
   };
 
@@ -122,6 +126,7 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
+    setIsEditing(false);
   };
 
   const handleLogout = async () => {
@@ -185,14 +190,24 @@ const Profile = () => {
                   )}
                 </div>
 
-                <Button
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -229,57 +244,104 @@ const Profile = () => {
           </div>
 
           {/* Edit Profile Card */}
+          {isEditing && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Edit Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell us about yourself..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="avatarUrl">Avatar URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="avatarUrl"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                    <Button variant="outline" size="icon">
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Paste an image URL or upload a photo
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleSave} 
+                  disabled={saving}
+                  className="w-full"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* User Reviews */}
           <Card>
             <CardHeader>
-              <CardTitle>Edit Profile</CardTitle>
+              <CardTitle>My Reviews ({reviewCount})</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell us about yourself..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="avatarUrl">Avatar URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="avatarUrl"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                  <Button variant="outline" size="icon">
-                    <Upload className="h-4 w-4" />
-                  </Button>
+            <CardContent>
+              {userReviews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  You haven't posted any reviews yet
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Paste an image URL or upload a photo
-                </p>
-              </div>
-
-              <Button 
-                onClick={handleSave} 
-                disabled={saving}
-                className="w-full"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
+              ) : (
+                <div className="space-y-4">
+                  {userReviews.map((review) => (
+                    <Card key={review.id} className="p-4">
+                      <div className="flex gap-4">
+                        {review.stores?.photo_url && (
+                          <img 
+                            src={review.stores.photo_url} 
+                            alt={review.stores.name}
+                            className="w-20 h-20 rounded-lg object-cover"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold">{review.stores?.name || 'Unknown Store'}</h4>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium">{review.rating}</span>
+                            </div>
+                          </div>
+                          {review.comment && (
+                            <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(review.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

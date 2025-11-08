@@ -6,6 +6,7 @@ import { StoreMessages } from '@/components/StoreMessages';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { UserProfileCard } from '@/components/UserProfileCard';
 import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Star, Navigation as NavigationIcon, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -196,6 +197,13 @@ const Chat = () => {
             </Button>
           </div>
         </Card>
+
+        {/* Sender Profile (for owners) */}
+        {isOwner && recipientUserId && (
+          <div className="mb-4">
+            <UserProfileCard userId={recipientUserId} />
+          </div>
+        )}
 
         {/* Messages Component */}
         <Card className="overflow-hidden">

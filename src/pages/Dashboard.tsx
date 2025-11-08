@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -457,12 +457,14 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-muted rounded w-1/4"></div>
+              <div className="h-64 bg-muted rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -471,9 +473,10 @@ const Dashboard = () => {
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-8">
           <Card className="p-12 text-center">
             <Store className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-bold mb-2">No Store Yet</h2>
@@ -536,36 +539,38 @@ const Dashboard = () => {
               </DialogContent>
             </Dialog>
           </Card>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
-          {stores.length > 1 && (
-            <div className="w-64">
-              <Label>{t('dashboard.selectStore')}</Label>
-              <Select value={selectedStoreId || undefined} onValueChange={handleStoreChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('dashboard.selectStorePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {stores.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+            {stores.length > 1 && (
+              <div className="w-64">
+                <Label>{t('dashboard.selectStore')}</Label>
+                <Select value={selectedStoreId || undefined} onValueChange={handleStoreChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('dashboard.selectStorePlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stores.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
 
         <div className="grid gap-6">
           {/* Store Overview */}
@@ -972,6 +977,7 @@ const Dashboard = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );

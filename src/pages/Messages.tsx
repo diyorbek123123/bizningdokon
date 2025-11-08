@@ -18,6 +18,8 @@ interface Conversation {
   last_sender_name: string;
   is_last_sender_current_user: boolean;
   other_user_id?: string;
+  sender_avatar?: string;
+  sender_name?: string;
 }
 
 const Messages = () => {
@@ -129,6 +131,15 @@ const Messages = () => {
       const allMessages = [...(userMessages || []), ...ownerMessages];
       allMessages.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+      // Get unique user IDs to fetch their profiles
+      const userIds = [...new Set(allMessages.map((m: any) => m.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
       // Group by store and pick the latest message per store
       const conversationsMap = new Map<string, Conversation>();
 
@@ -148,7 +159,9 @@ const Messages = () => {
 
         const isCurrentUserSender = (!isOwner && msg.sender_type === 'customer' && msg.user_id === currentUserId) ||
           (isOwner && msg.sender_type === 'owner');
-        const lastSenderName = isCurrentUserSender ? 'You' : (msg.sender_type === 'owner' ? 'Owner' : 'Customer');
+        
+        const senderProfile = profilesMap.get(msg.user_id);
+        const lastSenderName = isCurrentUserSender ? 'You' : (senderProfile?.full_name || msg.sender_type === 'owner' ? 'Owner' : 'Customer');
 
         conversationsMap.set(key, {
           store_id: storeId,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -132,10 +132,12 @@ const EditAbout = () => {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
-          <p>Loading...</p>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+            <p>Loading...</p>
+          </div>
         </div>
       </div>
     );
@@ -146,10 +148,11 @@ const EditAbout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navigation />
-
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex">
+      <Sidebar />
+      
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <Card className="max-w-3xl mx-auto p-8">
           <h1 className="text-3xl font-bold mb-6">Edit About Us Section</h1>
 
@@ -194,6 +197,7 @@ const EditAbout = () => {
             </div>
           </form>
         </Card>
+        </div>
       </div>
     </div>
   );

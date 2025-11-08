@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -145,10 +145,12 @@ const AddStore = () => {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
-          <p>{t('common.loading')}</p>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <div className="flex-1 ml-16">
+          <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+            <p>{t('common.loading')}</p>
+          </div>
         </div>
       </div>
     );
@@ -159,10 +161,11 @@ const AddStore = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      
+      <div className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto p-6">
           <h1 className="text-3xl font-bold mb-6">{t('addStore.title')}</h1>
 
@@ -267,6 +270,7 @@ const AddStore = () => {
             </Button>
           </form>
         </Card>
+        </div>
       </div>
     </div>
   );

@@ -60,8 +60,12 @@ const ProductSearch = () => {
   // Live search with debouncing
   useEffect(() => {
     const query = searchParams.get('q');
+    const cat = searchParams.get('category');
     if (query) {
       setSearchQuery(query);
+    }
+    if (cat) {
+      setCategory(cat);
     }
   }, [searchParams]);
 

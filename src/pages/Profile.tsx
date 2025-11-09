@@ -59,19 +59,44 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      setProfile(data);
-      setFullName(data.full_name || '');
-      setBio(data.bio || '');
-      setAvatarUrl(data.avatar_url || '');
+      // If profile doesn't exist, create it
+      if (!data) {
+        const { data: userData } = await supabase.auth.getUser();
+        const newProfile = {
+          id: userId,
+          email: userData.user?.email || '',
+          full_name: userData.user?.user_metadata?.full_name || '',
+          bio: null,
+          avatar_url: null,
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+
+        setProfile(createdProfile);
+        setFullName(createdProfile.full_name || '');
+        setBio(createdProfile.bio || '');
+        setAvatarUrl(createdProfile.avatar_url || '');
+      } else {
+        setProfile(data);
+        setFullName(data.full_name || '');
+        setBio(data.bio || '');
+        setAvatarUrl(data.avatar_url || '');
+      }
     } catch (error: any) {
       console.error('Error loading profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load profile',
+        description: 'Failed to load profile: ' + error.message,
         variant: 'destructive',
       });
     } finally {

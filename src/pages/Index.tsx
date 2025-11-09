@@ -3,11 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { StoreCard } from '@/components/StoreCard';
-import { ProductCard } from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Search, Heart, ChevronRight, UtensilsCrossed, Pizza, Coffee, IceCream, Apple } from 'lucide-react';
+import { Search, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,24 +25,6 @@ interface Store {
   close_time: string | null;
   created_at: string;
 }
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string | null;
-  image_url: string | null;
-  category: string | null;
-  store_id: string;
-}
-
-const CATEGORIES = [
-  { name: 'fast_food', icon: Pizza, label: 'Fast Food' },
-  { name: 'cafe', icon: Coffee, label: 'Café' },
-  { name: 'restaurant', icon: UtensilsCrossed, label: 'Restaurant' },
-  { name: 'dessert', icon: IceCream, label: 'Dessert' },
-  { name: 'healthy', icon: Apple, label: 'Healthy' },
-];
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371;
@@ -68,11 +47,9 @@ const Index = () => {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     fetchStores();
-    fetchFeaturedProducts();
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       if (data.user) loadFavorites(data.user.id);
@@ -111,21 +88,6 @@ const Index = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchFeaturedProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(12);
-
-      if (error) throw error;
-      setFeaturedProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
     }
   };
 
@@ -177,76 +139,6 @@ const Index = () => {
             />
           </div>
         </div>
-
-        {/* Categories Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Browse by Category</h2>
-            <Button variant="ghost" onClick={() => navigate('/search')} className="gap-2">
-              View All <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              return (
-                <button
-                  key={category.name}
-                  onClick={() => navigate(`/search?category=${category.name}`)}
-                  className="flex-shrink-0 group"
-                >
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-secondary hover:bg-primary/10 transition-colors flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                    <Icon className="h-10 w-10 md:h-12 md:w-12 text-primary" />
-                  </div>
-                  <p className="text-sm font-medium text-center">{category.label}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Featured Products */}
-        {featuredProducts.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Featured Products</h2>
-              <Button variant="ghost" onClick={() => navigate('/search')} className="gap-2">
-                View All <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {featuredProducts.slice(0, 12).map((product) => (
-                <Card 
-                  key={product.id}
-                  className="group cursor-pointer overflow-hidden hover:shadow-lg transition-shadow"
-                  onClick={() => navigate(`/store/${product.store_id}`)}
-                >
-                  <div className="aspect-square w-full overflow-hidden bg-muted">
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-                        <span className="text-4xl font-bold text-muted-foreground">
-                          {product.name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="font-medium text-sm truncate mb-1">{product.name}</p>
-                    <p className="text-primary font-bold text-sm">{product.price.toLocaleString()} UZS</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Tabs */}
         <Tabs defaultValue="all" className="w-full">

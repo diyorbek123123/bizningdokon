@@ -139,6 +139,15 @@ const Messages = () => {
         .in('id', userIds);
 
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      
+      // Also fetch store owner profiles
+      const storeOwnerIds = [...new Set(allMessages.map((m: any) => m.stores?.owner_id).filter(Boolean))];
+      const { data: ownerProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', storeOwnerIds);
+      
+      const ownerProfilesMap = new Map(ownerProfiles?.map(p => [p.id, p]) || []);
 
       // Group by store and pick the latest message per store
       const conversationsMap = new Map<string, Conversation>();
@@ -161,6 +170,7 @@ const Messages = () => {
           (isOwner && msg.sender_type === 'owner');
         
         const senderProfile = profilesMap.get(msg.user_id);
+        const ownerProfile = ownerProfilesMap.get(msg.stores?.owner_id);
         const lastSenderName = isCurrentUserSender ? 'You' : (senderProfile?.full_name || msg.sender_type === 'owner' ? 'Owner' : 'Customer');
 
         conversationsMap.set(key, {
@@ -173,6 +183,8 @@ const Messages = () => {
           last_sender_name: lastSenderName,
           is_last_sender_current_user: isCurrentUserSender,
           other_user_id: isOwner ? msg.user_id : undefined,
+          sender_avatar: isOwner ? senderProfile?.avatar_url : ownerProfile?.avatar_url,
+          sender_name: isOwner ? senderProfile?.full_name : ownerProfile?.full_name,
         });
       });
 
@@ -222,53 +234,59 @@ const Messages = () => {
             <p className="text-muted-foreground text-lg">{t('messages.noMessages')}</p>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {conversations.map((conversation) => (
-              <Card
-                key={conversation.store_id}
-                className="p-6 hover:bg-accent/50 cursor-pointer transition-colors"
+              <div
+                key={`${conversation.store_id}-${conversation.other_user_id || 'customer'}`}
+                className="flex items-center gap-3 p-3 hover:bg-accent rounded-lg cursor-pointer transition-colors group"
                 onClick={() =>
                   conversation.is_owner && conversation.other_user_id
                     ? navigate(`/chat/${conversation.store_id}?with=${conversation.other_user_id}`)
                     : navigate(`/chat/${conversation.store_id}`)
                 }
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                {/* Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                    {conversation.sender_avatar ? (
+                      <img src={conversation.sender_avatar} alt="" className="h-full w-full object-cover" />
+                    ) : (
                       <Store className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-lg truncate">
-                          {conversation.store_name}
-                        </h3>
-                        {conversation.is_owner && (
-                          <Badge variant="secondary" className="text-xs">
-                            Owner
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground text-sm line-clamp-2">
-                        <span className="font-medium">
-                          {conversation.is_last_sender_current_user 
-                            ? t('messages.you') 
-                            : conversation.last_sender_name}:
-                        </span>{' '}
-                        {conversation.last_message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(conversation.last_message_time).toLocaleString()}
-                      </p>
-                    </div>
+                    )}
                   </div>
                   {conversation.unread_count > 0 && (
-                    <Badge className="ml-4">
-                      {conversation.unread_count} new
-                    </Badge>
+                    <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-primary-foreground">
+                        {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </Card>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="font-semibold text-sm truncate flex-1">
+                      {conversation.is_owner ? conversation.sender_name || conversation.last_sender_name : conversation.store_name}
+                    </h3>
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {new Date(conversation.last_message_time).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false 
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {conversation.is_owner && (
+                      <Store className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <p className="text-xs text-muted-foreground truncate">
+                      {conversation.is_owner ? conversation.store_name : conversation.last_message}
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,7 @@ interface Review {
 
 const StoreDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const withUser = searchParams.get('with') || undefined;
   const { t } = useTranslation();
@@ -472,7 +473,15 @@ const StoreDetail = () => {
 
           {/* Messages Tab */}
           <TabsContent value="messages" className="mt-6">
-            <StoreMessages storeId={id!} recipientUserId={withUser} />
+            <Card className="p-6 text-center">
+              <MessageCircle className="h-16 w-16 mx-auto mb-4 text-primary" />
+              <p className="text-lg font-semibold mb-2">Start a conversation</p>
+              <p className="text-muted-foreground mb-4">Click the button below to message this store</p>
+              <Button onClick={() => navigate(`/chat/${id}`)}>
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Open Chat
+              </Button>
+            </Card>
           </TabsContent>
         </Tabs>
         </div>

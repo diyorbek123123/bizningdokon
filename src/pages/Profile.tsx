@@ -35,6 +35,7 @@ const Profile = () => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [userReviews, setUserReviews] = useState<any[]>([]);
+  const [ownedStores, setOwnedStores] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -51,6 +52,7 @@ const Profile = () => {
     setUser(user);
     await loadProfile(user.id);
     await loadReviewCount(user.id);
+    await loadOwnedStores(user.id);
   };
 
   const loadProfile = async (userId: string) => {
@@ -117,6 +119,20 @@ const Profile = () => {
       setReviewCount(data?.length || 0);
     } catch (error) {
       console.error('Error loading reviews:', error);
+    }
+  };
+
+  const loadOwnedStores = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('owner_id', userId);
+
+      if (error) throw error;
+      setOwnedStores(data || []);
+    } catch (error) {
+      console.error('Error loading owned stores:', error);
     }
   };
 
@@ -321,6 +337,55 @@ const Profile = () => {
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Owned Stores */}
+          {ownedStores.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>My Stores ({ownedStores.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {ownedStores.map((store) => (
+                    <Card 
+                      key={store.id} 
+                      className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => navigate(`/store/${store.id}`)}
+                    >
+                      <div className="flex gap-4 items-center">
+                        <div className="w-16 h-16 rounded-lg bg-cover bg-center flex-shrink-0"
+                          style={{ 
+                            backgroundImage: store.photo_url 
+                              ? `url(${store.photo_url})` 
+                              : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%)'
+                          }}
+                        >
+                          {!store.photo_url && (
+                            <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold">
+                              {store.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold truncate">{store.name}</h4>
+                          <p className="text-sm text-muted-foreground truncate">{store.address}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              <Star className="h-3 w-3 mr-1 fill-current" />
+                              {store.rating?.toFixed(1) || '0.0'}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {store.review_count || 0} reviews
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

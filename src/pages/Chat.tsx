@@ -136,64 +136,42 @@ const Chat = () => {
           {t('common.back')}
         </Button>
 
-        {/* Smart Store Header */}
-        <Card className="p-3 md:p-4 mb-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3 md:gap-4">
-            {/* Store Photo */}
+        {/* Chat Header */}
+        <Card className="p-4 mb-4">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/store/${store.id}`)}>
             <div 
-              className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-cover bg-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              className="w-12 h-12 rounded-full bg-cover bg-center flex-shrink-0"
               style={{ 
                 backgroundImage: store.photo_url 
                   ? `url(${store.photo_url})` 
-                  : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%)'
+                  : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%)'
               }}
-              onClick={() => navigate(`/store/${store.id}`)}
             >
               {!store.photo_url && (
-                <div className="w-full h-full flex items-center justify-center text-white text-xl md:text-2xl font-bold">
+                <div className="w-full h-full flex items-center justify-center text-white text-lg font-bold rounded-full">
                   {store.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
-            {/* Store Info */}
             <div className="flex-1 min-w-0">
-              <h2 
-                className="text-base md:text-lg font-bold truncate cursor-pointer hover:text-primary transition-colors"
-                onClick={() => navigate(`/store/${store.id}`)}
-              >
+              <h2 className="font-bold text-lg truncate">
                 {store.name}
               </h2>
-              
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                {/* Rating */}
-                <Badge variant="secondary" className="text-xs">
-                  <Star className="h-3 w-3 mr-1 fill-current" />
-                  {store.rating?.toFixed(1) || '0.0'} ({store.review_count || 0})
-                </Badge>
-                
-                {/* Distance */}
-                {distance !== null && (
-                  <Badge variant="outline" className="text-xs">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {distance.toFixed(1)} km
-                  </Badge>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-1 md:line-clamp-2">
+              <p className="text-xs text-muted-foreground truncate">
                 {store.address}
               </p>
             </div>
 
-            {/* Direction Button */}
             <Button
               size="sm"
-              onClick={openDirections}
-              className="flex-shrink-0 h-9 w-9 md:h-10 md:w-auto md:px-4"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                openDirections();
+              }}
             >
-              <NavigationIcon className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">{t('store.getDirections')}</span>
+              <NavigationIcon className="h-4 w-4" />
             </Button>
           </div>
         </Card>

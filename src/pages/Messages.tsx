@@ -20,6 +20,7 @@ interface Conversation {
   other_user_id?: string;
   sender_avatar?: string;
   sender_name?: string;
+  owner_name?: string;
 }
 
 const Messages = () => {
@@ -140,8 +141,17 @@ const Messages = () => {
 
       const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
       
-      // Also fetch store owner profiles
-      const storeOwnerIds = [...new Set(allMessages.map((m: any) => m.stores?.owner_id).filter(Boolean))];
+      // Also fetch store owner profiles from stores table
+      const storeIds = [...new Set(allMessages.map((m: any) => m.store_id).filter(Boolean))];
+      const { data: storesWithOwners } = await supabase
+        .from('stores')
+        .select('id, owner_id, name')
+        .in('id', storeIds);
+      
+      const storeOwnerMap = new Map(storesWithOwners?.map(s => [s.id, s.owner_id]) || []);
+      
+      // Fetch owner profiles
+      const storeOwnerIds = [...new Set(storesWithOwners?.map(s => s.owner_id).filter(Boolean) || [])];
       const { data: ownerProfiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
@@ -170,7 +180,8 @@ const Messages = () => {
           (isOwner && msg.sender_type === 'owner');
         
         const senderProfile = profilesMap.get(msg.user_id);
-        const ownerProfile = ownerProfilesMap.get(msg.stores?.owner_id);
+        const ownerId = storeOwnerMap.get(storeId);
+        const ownerProfile = ownerId ? ownerProfilesMap.get(ownerId) : null;
         const lastSenderName = isCurrentUserSender ? 'You' : (senderProfile?.full_name || msg.sender_type === 'owner' ? 'Owner' : 'Customer');
 
         conversationsMap.set(key, {
@@ -185,6 +196,7 @@ const Messages = () => {
           other_user_id: isOwner ? msg.user_id : undefined,
           sender_avatar: isOwner ? senderProfile?.avatar_url : ownerProfile?.avatar_url,
           sender_name: isOwner ? senderProfile?.full_name : ownerProfile?.full_name,
+          owner_name: ownerProfile?.full_name,
         });
       });
 
@@ -267,7 +279,9 @@ const Messages = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
                     <h3 className="font-semibold text-sm truncate flex-1">
-                      {conversation.is_owner ? conversation.sender_name || conversation.last_sender_name : conversation.store_name}
+                      {conversation.is_owner 
+                        ? (conversation.sender_name || conversation.last_sender_name)
+                        : (conversation.owner_name || 'Store Owner')}
                     </h3>
                     <span className="text-xs text-muted-foreground flex-shrink-0">
                       {new Date(conversation.last_message_time).toLocaleTimeString('en-US', { 
@@ -278,13 +292,21 @@ const Messages = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    {conversation.is_owner && (
-                      <Store className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                    )}
+                    <Store className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     <p className="text-xs text-muted-foreground truncate">
-                      {conversation.is_owner ? conversation.store_name : conversation.last_message}
+                      {conversation.store_name}
                     </p>
                   </div>
+                  {!conversation.is_owner && (
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {conversation.last_message}
+                    </p>
+                  )}
+                  {conversation.is_owner && (
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {conversation.last_message}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

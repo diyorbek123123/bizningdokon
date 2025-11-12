@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import shoxaLogo from '@/assets/shoxa-logo.png';
 
 export const Navigation = () => {
   const { t } = useTranslation();
@@ -65,10 +66,8 @@ export const Navigation = () => {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-            <span className="text-foreground">
-              BizningDo'kon
-            </span>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={shoxaLogo} alt="SHOXA" className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

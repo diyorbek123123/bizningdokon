@@ -63,36 +63,35 @@ export const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={shoxaLogo} alt="SHOXA" className="h-10 w-auto" />
+    <nav className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-background via-background to-background/80 backdrop-blur-xl shadow-sm">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+          {/* Logo Section - More Prominent */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <img 
+                src={shoxaLogo} 
+                alt="SHOXA" 
+                className="h-12 w-auto transition-transform duration-300 group-hover:scale-110" 
+              />
+              <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
+              SHOXA
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1 flex-wrap">
+          {/* Desktop Navigation - Cleaner Design */}
+          <div className="hidden lg:flex items-center gap-2">
             <Button
               asChild
               variant={isActive('/') ? 'default' : 'ghost'}
               size="sm"
-              className="h-8 px-2 text-xs whitespace-nowrap"
+              className="h-9 px-4 text-sm font-medium transition-all"
             >
-              <Link to="/" className="gap-1.5">
-                <Store className="h-3.5 w-3.5" />
+              <Link to="/" className="gap-2">
+                <Store className="h-4 w-4" />
                 {t('nav.home')}
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant={isActive('/map') ? 'default' : 'ghost'}
-              size="sm"
-              className="h-8 px-2 text-xs whitespace-nowrap"
-            >
-              <Link to="/map" className="gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                {t('nav.map')}
               </Link>
             </Button>
 
@@ -100,10 +99,10 @@ export const Navigation = () => {
               asChild
               variant={isActive('/search') ? 'default' : 'ghost'}
               size="sm"
-              className="h-8 px-2 text-xs whitespace-nowrap"
+              className="h-9 px-4 text-sm font-medium transition-all"
             >
-              <Link to="/search" className="gap-1.5">
-                <Search className="h-3.5 w-3.5" />
+              <Link to="/search" className="gap-2">
+                <Search className="h-4 w-4" />
                 {t('nav.search')}
               </Link>
             </Button>
@@ -113,42 +112,38 @@ export const Navigation = () => {
                 asChild
                 variant={isActive('/messages') ? 'default' : 'ghost'}
                 size="sm"
-                className="h-8 px-2 text-xs whitespace-nowrap"
+                className="h-9 px-4 text-sm font-medium transition-all"
               >
-                <Link to="/messages" className="gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5" />
+                <Link to="/messages" className="gap-2">
+                  <MessageCircle className="h-4 w-4" />
                   {t('messages.title')}
                 </Link>
               </Button>
             )}
 
-            {userRole !== 'admin' && (
-              <Button
-                asChild
-                variant={isActive('/about') ? 'default' : 'ghost'}
-                size="sm"
-                className="h-8 px-2 text-xs whitespace-nowrap"
-              >
-                <Link to="/about" className="gap-1.5">
-                  <Info className="h-3.5 w-3.5" />
-                  {t('nav.about')}
-                </Link>
-              </Button>
-            )}
-
             {user && userRole !== 'admin' && (
-              <Button asChild variant={isActive('/favorites') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
-                <Link to="/favorites" className="gap-1.5">
-                  <Heart className="h-3.5 w-3.5" />
+              <Button 
+                asChild 
+                variant={isActive('/favorites') ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-9 px-4 text-sm font-medium transition-all"
+              >
+                <Link to="/favorites" className="gap-2">
+                  <Heart className="h-4 w-4" />
                   Favorites
                 </Link>
               </Button>
             )}
 
             {userRole === 'store_owner' && (
-              <Button asChild variant={isActive('/dashboard') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
-                <Link to="/dashboard" className="gap-1.5">
-                  <LayoutDashboard className="h-3.5 w-3.5" />
+              <Button 
+                asChild 
+                variant={isActive('/dashboard') ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-9 px-4 text-sm font-medium transition-all"
+              >
+                <Link to="/dashboard" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
               </Button>
@@ -156,53 +151,67 @@ export const Navigation = () => {
 
             {userRole === 'admin' && (
               <>
-                <Button asChild variant={isActive('/add-store') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
-                  <Link to="/add-store" className="gap-1.5">
-                    <Plus className="h-3.5 w-3.5" />
-                    {t('nav.addStore')}
+                <Button 
+                  asChild 
+                  variant={isActive('/admin') ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className="h-9 px-4 text-sm font-medium transition-all"
+                >
+                  <Link to="/admin" className="gap-2">
+                    <Edit className="h-4 w-4" />
+                    Admin
                   </Link>
                 </Button>
                 
-                <Button asChild variant={isActive('/admin') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
-                  <Link to="/admin" className="gap-1.5">
-                    <Edit className="h-3.5 w-3.5" />
-                    Add Changes
-                  </Link>
-                </Button>
-                
-                <Button asChild variant={isActive('/owner-admin') ? 'default' : 'ghost'} size="sm" className="h-8 px-2 text-xs whitespace-nowrap">
-                  <Link to="/owner-admin" className="gap-1.5">
-                    <UserCog className="h-3.5 w-3.5" />
+                <Button 
+                  asChild 
+                  variant={isActive('/owner-admin') ? 'default' : 'ghost'} 
+                  size="sm" 
+                  className="h-9 px-4 text-sm font-medium transition-all"
+                >
+                  <Link to="/owner-admin" className="gap-2">
+                    <UserCog className="h-4 w-4" />
                     Owners
                   </Link>
                 </Button>
               </>
             )}
 
-            {user ? (
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="h-8 px-2 text-xs whitespace-nowrap">
-                <LogOut className="h-3.5 w-3.5 mr-1.5" />
-                Chiqish
-              </Button>
-            ) : (
-              <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground h-8 px-2 text-xs whitespace-nowrap">
-                <Link to="/auth" className="gap-1.5">
-                  Kirish
-                </Link>
-              </Button>
-            )}
-
-            <ThemeToggle />
-            <LanguageSelector />
+            <div className="flex items-center gap-1 ml-2 pl-2 border-l">
+              {user ? (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLogout} 
+                  className="h-9 px-4 text-sm font-medium"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              ) : (
+                <Button 
+                  asChild 
+                  size="sm" 
+                  className="h-9 px-6 text-sm font-semibold bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all"
+                >
+                  <Link to="/auth">
+                    Login
+                  </Link>
+                </Button>
+              )}
+              
+              <ThemeToggle />
+              <LanguageSelector />
+            </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Simplified */}
           <div className="flex lg:hidden items-center gap-2">
             <ThemeToggle />
             <LanguageSelector />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="outline" size="sm" className="h-10 w-10 p-0">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Navigation } from '@/components/Navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { StoreCard } from '@/components/StoreCard';
 import { ProductCard } from '@/components/ProductCard';
@@ -140,10 +141,12 @@ const Index = () => {
   const favoriteStores = filteredStores.filter(s => favoriteIds.includes(s.id));
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
-      
-      <main className="flex-1 ml-16 p-8">
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <div className="flex">
+        <Sidebar />
+        
+        <main className="flex-1 ml-16 p-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">{t('hero.title')}</h1>
@@ -258,6 +261,7 @@ const Index = () => {
           )}
         </Tabs>
       </main>
+      </div>
     </div>
   );
 };

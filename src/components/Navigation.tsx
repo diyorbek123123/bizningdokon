@@ -72,7 +72,7 @@ export const Navigation = () => {
               <img 
                 src={shoxaLogo} 
                 alt="SHOXA" 
-                className="h-12 w-auto transition-transform duration-300 group-hover:scale-105" 
+                className="h-12 w-auto transition-transform duration-300 group-hover:scale-105 [background:transparent]" 
               />
               <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
             </div>

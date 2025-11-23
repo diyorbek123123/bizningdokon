@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, MapPin, Heart, MessageCircle, User } from 'lucide-react';
+import { Home, MapPin, Heart, MessageCircle, User, Bot } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -8,6 +8,7 @@ import { AIAssistant } from '@/components/AIAssistant';
 export const MobileNavigation = () => {
   const location = useLocation();
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [showAI, setShowAI] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,6 +31,10 @@ export const MobileNavigation = () => {
     { path: '/messages', icon: MessageCircle, label: 'Messages' },
     { path: user ? '/profile' : '/auth', icon: User, label: user ? 'Profile' : 'Login' },
   ];
+
+  const handleAIClick = () => {
+    setShowAI(!showAI);
+  };
 
   return (
     <>
@@ -54,11 +59,22 @@ export const MobileNavigation = () => {
               </Link>
             );
           })}
+          <button
+            onClick={handleAIClick}
+            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+              showAI ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Bot className={`h-5 w-5 mb-1 ${showAI ? 'fill-primary' : ''}`} />
+            <span className="text-xs font-medium">AI</span>
+          </button>
         </div>
       </nav>
-      <div className="lg:hidden">
-        <AIAssistant />
-      </div>
+      {showAI && (
+        <div className="lg:hidden">
+          <AIAssistant />
+        </div>
+      )}
     </>
   );
 };

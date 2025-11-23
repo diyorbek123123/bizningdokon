@@ -142,6 +142,20 @@ const Profile = () => {
   const handleSave = async () => {
     if (!user) return;
 
+    // Validate avatar URL if provided
+    if (avatarUrl && avatarUrl.trim() !== '') {
+      // Check if it's a valid image URL format
+      const urlPattern = /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+      if (!urlPattern.test(avatarUrl)) {
+        toast({
+          title: 'Invalid Image URL',
+          description: 'Please provide a direct image URL (ending in .jpg, .png, etc.) or use the upload button',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -149,7 +163,7 @@ const Profile = () => {
         .update({
           full_name: fullName,
           bio: bio,
-          avatar_url: avatarUrl,
+          avatar_url: avatarUrl || null,
         })
         .eq('id', user.id);
 
@@ -160,7 +174,9 @@ const Profile = () => {
         description: 'Profile updated successfully',
       });
 
+      // Reload profile to ensure avatar updates
       await loadProfile(user.id);
+      setIsEditing(false);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -170,7 +186,6 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
-    setIsEditing(false);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

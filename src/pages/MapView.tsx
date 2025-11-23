@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileHeader } from '@/components/MobileHeader';
+import { MobileNavigation } from '@/components/MobileNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -229,19 +231,21 @@ const MapView = () => {
   }, [stores]);
 
    return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
+      <MobileHeader />
       <Sidebar />
 
-      <div className="flex-1 ml-16">
+      <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
         <div className="container mx-auto px-4 py-6 lg:py-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-1">{t('map.title', { defaultValue: 'Store Map' })}</h1>
-            <p className="text-sm text-muted-foreground">{t('map.clickStore', { defaultValue: 'Click on a store to see details' })}</p>
+            <h1 className="text-2xl lg:text-3xl font-bold mb-1">{t('map.title', { defaultValue: 'Store Map' })}</h1>
+            <p className="text-sm text-muted-foreground hidden lg:block">{t('map.clickStore', { defaultValue: 'Click on a store to see details' })}</p>
           </div>
           <Button onClick={getUserLocation} variant="outline" size="sm">
             <MapPin className="h-4 w-4 mr-2" />
-            {t('map.myLocation', { defaultValue: 'My Location' })}
+            <span className="hidden sm:inline">{t('map.myLocation', { defaultValue: 'My Location' })}</span>
+            <span className="sm:hidden">Location</span>
           </Button>
         </div>
 
@@ -293,7 +297,6 @@ const MapView = () => {
           <div ref={mapContainerRef} className="w-full h-full" />
         </div>
         </div>
-      </div>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col z-[9999]">
@@ -420,6 +423,8 @@ const MapView = () => {
           )}
         </SheetContent>
       </Sheet>
+      </main>
+      <MobileNavigation />
     </div>
   );
 };

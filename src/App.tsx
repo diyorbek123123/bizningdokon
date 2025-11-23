@@ -15,6 +15,7 @@ import EditAbout from "./pages/EditAbout";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
+import { ProcessLogo } from "./pages/ProcessLogo";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/owner-admin" element={<OwnerAdmin />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/chat/:storeId" element={<Chat />} />
+            <Route path="/process-logo" element={<ProcessLogo />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

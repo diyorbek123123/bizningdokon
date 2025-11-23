@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileHeader } from '@/components/MobileHeader';
+import { MobileNavigation } from '@/components/MobileNavigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon, Star, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon, Star, MessageCircle, Heart, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { StoreMessages } from '@/components/StoreMessages';
@@ -62,6 +65,8 @@ const StoreDetail = () => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(234); // Placeholder
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -195,44 +200,233 @@ const StoreDetail = () => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
+    setFollowersCount(prev => isFollowing ? prev - 1 : prev + 1);
+  };
+
+  const handleCall = () => {
+    if (store?.phone) {
+      window.location.href = `tel:${store.phone}`;
+    }
+  };
+
+  const handleMessage = () => {
+    navigate(`/chat/${id}`);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background">
+        <MobileHeader />
         <Sidebar />
-        <div className="flex-1 ml-16">
-          <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-4">
+        <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
+          <div className="animate-pulse space-y-4 px-4">
             <div className="h-64 bg-muted rounded-lg" />
             <div className="h-8 bg-muted rounded w-1/2" />
             <div className="h-4 bg-muted rounded w-3/4" />
           </div>
-        </div>
-        </div>
+        </main>
+        <MobileNavigation />
       </div>
     );
   }
 
   if (!store) {
     return (
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background">
+        <MobileHeader />
         <Sidebar />
-        <div className="flex-1 ml-16">
+        <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
           <div className="container mx-auto px-4 py-8 text-center">
-          <p className="text-muted-foreground">Store not found</p>
-          <Button asChild className="mt-4">
-            <Link to="/">Go Home</Link>
-          </Button>
-        </div>
-        </div>
+            <p className="text-muted-foreground">Store not found</p>
+            <Button asChild className="mt-4">
+              <Link to="/">Go Home</Link>
+            </Button>
+          </div>
+        </main>
+        <MobileNavigation />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
       <Sidebar />
+      
+      {/* Mobile View */}
+      <div className="lg:hidden">
+        {/* Hero Image with Back Button */}
+        <div className="relative h-64 w-full overflow-hidden">
+          {store.photo_url ? (
+            <img
+              src={store.photo_url}
+              alt={store.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+              <span className="text-6xl font-bold text-muted-foreground opacity-20">
+                {store.name.charAt(0)}
+              </span>
+            </div>
+          )}
+          
+          <Button 
+            asChild 
+            variant="secondary"
+            size="sm"
+            className="absolute top-4 left-4 rounded-full"
+          >
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Link>
+          </Button>
+        </div>
 
-      <div className="flex-1 ml-16">
+        {/* Store Info Card */}
+        <div className="bg-card rounded-t-3xl -mt-6 relative z-10 px-4 pt-6 pb-24">
+          {/* Store Name and Avatar */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-1">{store.name}</h1>
+              <p className="text-sm text-muted-foreground mb-3">{store.address}</p>
+              
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="secondary" className="bg-accent">
+                  Restaurant
+                </Badge>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span>0m away</span>
+                </div>
+              </div>
+            </div>
+            
+            {store.photo_url && (
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
+                <img
+                  src={store.photo_url}
+                  alt={store.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+
+          {store.description && (
+            <p className="text-sm text-muted-foreground mb-4">{store.description}</p>
+          )}
+
+          {/* Stats */}
+          <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-accent" />
+              <span className="font-semibold">{followersCount}</span>
+              <span className="text-sm text-muted-foreground">followers</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-muted-foreground" />
+              <span className="font-semibold">{products.length}</span>
+              <span className="text-sm text-muted-foreground">products</span>
+            </div>
+          </div>
+
+          {/* Store Details */}
+          <div className="space-y-3 mb-6">
+            {store.open_time && store.close_time && (
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Hours</p>
+                  <p className="text-sm text-muted-foreground">
+                    {store.open_time} - {store.close_time}
+                  </p>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Address</p>
+                <p className="text-sm text-muted-foreground">{store.address}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Phone className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Phone</p>
+                <a href={`tel:${store.phone}`} className="text-sm text-muted-foreground hover:text-primary">
+                  {store.phone}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Products Section */}
+          <div>
+            <h2 className="text-xl font-bold mb-4">Products</h2>
+            
+            {products.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No products available</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {filteredProducts.map((product) => (
+                  <Card key={product.id} className="overflow-hidden">
+                    {product.image_url && (
+                      <div className="aspect-square w-full overflow-hidden">
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-3">
+                      <h3 className="font-semibold mb-1 text-sm">{product.name}</h3>
+                      <p className="text-sm font-bold text-primary">
+                        {product.price.toLocaleString()} UZS
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fixed Bottom Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-card border-t p-4 z-50">
+          <div className="flex gap-2">
+            <Button
+              onClick={toggleFollow}
+              variant={isFollowing ? "default" : "secondary"}
+              className="flex-1 gap-2"
+            >
+              <Heart className={`h-4 w-4 ${isFollowing ? 'fill-current' : ''}`} />
+              {isFollowing ? 'Following' : 'Follow'}
+            </Button>
+            <Button
+              onClick={handleCall}
+              size="icon"
+              className="w-12 h-12 rounded-full bg-green-500 hover:bg-green-600"
+            >
+              <Phone className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={handleMessage}
+              size="icon"
+              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop View - Keep existing tabs layout */}
+      <div className="hidden lg:block ml-16 pt-24">
         <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
           <Link to="/">

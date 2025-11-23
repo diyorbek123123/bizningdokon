@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import shoxaLogo from '@/assets/shoxa-logo.png';
+import shoxaLogo from '@/assets/shoxa-logo.svg';
 
 export const Navigation = () => {
   const { t } = useTranslation();

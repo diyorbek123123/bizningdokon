@@ -3,12 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileHeader } from '@/components/MobileHeader';
+import { MobileNavigation } from '@/components/MobileNavigation';
+import { QuickAccessCategories } from '@/components/QuickAccessCategories';
 import { StoreCard } from '@/components/StoreCard';
 import { ProductCard } from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Search, Heart, ChevronRight } from 'lucide-react';
+import { Search, Heart, ChevronRight, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -147,17 +150,58 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Desktop Navigation */}
       <Navigation />
-      <div className="flex">
-        <Sidebar />
-        
-        <main className="flex-1 ml-16 pt-24 p-8">
-        {/* Header */}
-        <div className="mb-8">
+      <Sidebar />
+      
+      {/* Mobile Header */}
+      <MobileHeader />
+      
+      {/* Main Content */}
+      <main className="lg:ml-16 lg:pt-24 pt-16 pb-20 lg:pb-8">
+        {/* Mobile Search Bar */}
+        <div className="lg:hidden px-4 pt-4 pb-2">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search Shops, Products, Type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-12 rounded-full bg-muted border-0"
+            />
+          </div>
+        </div>
+
+        {/* Mobile Hero Section */}
+        <div className="lg:hidden px-4 pt-4">
+          <Card className="bg-accent text-accent-foreground p-8 rounded-3xl text-center relative overflow-hidden">
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold mb-2">Find Your Branch Now!</h2>
+              <p className="text-sm opacity-90 mb-6">See all 0 sites near you</p>
+              <Button 
+                onClick={() => navigate('/map')}
+                variant="secondary"
+                size="lg"
+                className="rounded-full px-8"
+              >
+                Open Full Map
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick Access Categories */}
+        <div className="lg:hidden">
+          <QuickAccessCategories />
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:block px-8 mb-8">
           <h1 className="text-4xl font-bold mb-2">{t('hero.title')}</h1>
           <p className="text-muted-foreground text-lg mb-6">{t('hero.subtitle')}</p>
           
-          {/* Search Bar */}
+          {/* Desktop Search Bar */}
           <div className="relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -170,8 +214,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Categories Section */}
-        <div className="mb-8">
+        {/* Desktop Categories Section */}
+        <div className="hidden lg:block px-8 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">Browse by Category</h2>
           </div>
@@ -204,72 +248,67 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-8 bg-secondary p-1.5 rounded-xl">
-            <TabsTrigger 
-              value="all" 
-              className="rounded-lg px-6 py-2.5 font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              {t('common.allStores')} <span className="ml-2 text-xs opacity-70">({filteredStores.length})</span>
-            </TabsTrigger>
+        {/* Stores Section */}
+        <div className="px-4 lg:px-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg lg:text-2xl font-bold">
+              Recommended ({filteredStores.length})
+            </h2>
             {user && (
-              <TabsTrigger 
-                value="favorites" 
-                className="gap-2 rounded-lg px-6 py-2.5 font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/favorites')}
+                className="text-primary"
               >
-                <Heart className="h-4 w-4" />
-                {t('common.favorites')} <span className="ml-2 text-xs opacity-70">({favoriteStores.length})</span>
-              </TabsTrigger>
+                See All
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             )}
-          </TabsList>
+          </div>
 
-          <TabsContent value="all" className="animate-fade-in">
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-28 bg-muted animate-pulse rounded-xl" />
-                ))}
-              </div>
-            ) : filteredStores.length === 0 ? (
-              <div className="text-center py-20 bg-card rounded-2xl border border-border">
-                <p className="text-muted-foreground text-lg">
-                  {searchQuery ? t('common.noStoresFound') : t('common.noStores')}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredStores.map((store, index) => (
-                  <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
-                    <StoreCard {...store} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {user && (
-            <TabsContent value="favorites" className="animate-fade-in">
-              {favoriteStores.length === 0 ? (
-                <div className="text-center py-20 bg-card rounded-2xl border border-border">
-                  <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <p className="text-foreground text-lg font-semibold mb-2">{t('common.noFavorites')}</p>
-                  <p className="text-sm text-muted-foreground">{t('common.clickHeart')}</p>
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-28 bg-muted animate-pulse rounded-xl" />
+              ))}
+            </div>
+          ) : filteredStores.length === 0 ? (
+            <div className="text-center py-20 bg-card rounded-2xl border border-border">
+              <p className="text-muted-foreground text-lg">
+                {searchQuery ? t('common.noStoresFound') : 'Fetching shop data...'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredStores.slice(0, 10).map((store, index) => (
+                <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
+                  <StoreCard {...store} />
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {favoriteStores.map((store, index) => (
-                    <div key={store.id} className="animate-fade-up" style={{ animationDelay: `${index * 0.05}s` }}>
-                      <StoreCard {...store} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+              ))}
+            </div>
           )}
-        </Tabs>
+
+          {/* Promotions Section */}
+          <div className="mt-8">
+            <h2 className="text-lg lg:text-2xl font-bold mb-4">Promotions & Products</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              <Card className="flex-shrink-0 w-40 h-40 bg-accent flex items-center justify-center rounded-2xl">
+                <span className="text-white font-bold text-lg">Coming Soon</span>
+              </Card>
+              <Card className="flex-shrink-0 w-40 h-40 bg-secondary flex items-center justify-center rounded-2xl">
+                <span className="font-semibold">New Products</span>
+              </Card>
+              <Card className="flex-shrink-0 w-40 h-40 bg-muted flex items-center justify-center rounded-2xl">
+                <span className="font-semibold">Special Offers</span>
+              </Card>
+            </div>
+          </div>
+        </div>
       </main>
-      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNavigation />
     </div>
   );
 };

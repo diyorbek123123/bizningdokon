@@ -21,6 +21,11 @@ export const ProcessLogo = () => {
       const imageElement = await loadImage(blob);
       
       // Remove background
+      toast({
+        title: 'Processing...',
+        description: 'Removing background from logo. This may take 30-60 seconds.',
+      });
+      
       const resultBlob = await removeBackground(imageElement);
       
       // Create URL for preview
@@ -30,20 +35,20 @@ export const ProcessLogo = () => {
       // Create download link
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'shoxa-logo.png';
+      link.download = 'shoxa-logo-transparent.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
       toast({
         title: 'Success!',
-        description: 'Logo processed and downloaded. Replace shoxa-logo.png in src/assets with the downloaded file.',
+        description: 'Logo processed and downloaded. Now replace src/assets/shoxa-logo.png with the downloaded file manually.',
       });
     } catch (error) {
       console.error('Error processing logo:', error);
       toast({
         title: 'Error',
-        description: 'Failed to process logo. Please try again.',
+        description: `Failed to process logo: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {

@@ -23,6 +23,7 @@ import Favorites from "./pages/Favorites";
 import OwnerAdmin from "./pages/OwnerAdmin";
 import Messages from "./pages/Messages";
 import Chat from "./pages/Chat";
+import AIChat from "./pages/AIChat";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/owner-admin" element={<OwnerAdmin />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/chat/:storeId" element={<Chat />} />
+            <Route path="/ai-chat" element={<AIChat />} />
             <Route path="/process-logo" element={<ProcessLogo />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />

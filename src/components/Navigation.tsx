@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import shoxaLogo from '@/assets/shoxa-logo.svg';
+import shoxaLogo from '@/assets/shoxa-logo-original.png';
 
 export const Navigation = () => {
   const { t } = useTranslation();
@@ -67,18 +67,15 @@ export const Navigation = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo Section */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center group">
             <div className="relative">
               <img 
                 src={shoxaLogo} 
                 alt="SHOXA" 
-                className="h-10 w-auto transition-transform duration-300 group-hover:scale-110" 
+                className="h-12 w-auto transition-transform duration-300 group-hover:scale-105" 
               />
               <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
-              SHOXA
-            </span>
           </Link>
 
           {/* Right Section - Theme Toggle Only */}

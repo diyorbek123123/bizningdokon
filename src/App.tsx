@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { AIAssistant } from "@/components/AIAssistant";
+
 import Index from "./pages/Index";
 import MapView from "./pages/MapView";
 import AddStore from "./pages/AddStore";
@@ -55,7 +55,6 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <AIAssistant />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

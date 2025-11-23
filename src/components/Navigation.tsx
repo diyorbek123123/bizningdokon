@@ -63,32 +63,32 @@ export const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-background via-background to-background/80 backdrop-blur-xl shadow-sm">
+    <nav className="fixed top-0 left-16 right-0 z-40 border-b bg-card/80 backdrop-blur-xl shadow-sm">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
-          {/* Logo Section - More Prominent */}
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo Section */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
               <img 
                 src={shoxaLogo} 
                 alt="SHOXA" 
-                className="h-12 w-auto transition-transform duration-300 group-hover:scale-110" 
+                className="h-10 w-auto transition-transform duration-300 group-hover:scale-110" 
               />
               <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
               SHOXA
             </span>
           </Link>
 
-          {/* Desktop Navigation - Clean and Minimal */}
+          {/* Right Section - Theme Toggle Only */}
           <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
           </div>
 
-          {/* Mobile Navigation - Simplified */}
+          {/* Mobile Navigation */}
           <div className="flex lg:hidden items-center gap-2">
             <ThemeToggle />
-            <LanguageSelector />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="h-10 w-10 p-0">

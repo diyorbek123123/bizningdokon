@@ -146,7 +146,7 @@ const Index = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 ml-16 p-8">
+        <main className="flex-1 ml-16 pt-24 p-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">{t('hero.title')}</h1>

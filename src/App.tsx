@@ -14,6 +14,7 @@ import AboutUs from "./pages/AboutUs";
 import EditAbout from "./pages/EditAbout";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import Admin from "./pages/Admin";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/edit-about" element={<EditAbout />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/favorites" element={<Favorites />} />

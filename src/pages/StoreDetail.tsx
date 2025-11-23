@@ -11,6 +11,7 @@ import { ArrowLeft, MapPin, Phone, Search, Clock, Navigation as NavigationIcon, 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { StoreMessages } from '@/components/StoreMessages';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Store {
   id: string;
@@ -41,6 +42,7 @@ interface Review {
   created_at: string;
   profiles: {
     full_name: string;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -128,13 +130,13 @@ const StoreDetail = () => {
         (data || []).map(async (review) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('full_name, avatar_url')
             .eq('id', review.user_id)
             .single();
           
           return {
             ...review,
-            profiles: profile || { full_name: 'Anonymous' }
+            profiles: profile || { full_name: 'Anonymous', avatar_url: null }
           };
         })
       );
@@ -444,27 +446,50 @@ const StoreDetail = () => {
               <div className="space-y-4">
                 {reviews.map((review) => (
                   <Card key={review.id} className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-semibold">{review.profiles?.full_name || 'Anonymous'}</p>
-                        <div className="flex gap-1 mt-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-4 w-4 ${
-                                star <= review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
-                              }`}
-                            />
-                          ))}
+                    <div className="flex items-start gap-4">
+                      {/* Clickable Avatar */}
+                      <button
+                        onClick={() => navigate(`/user/${review.user_id}`)}
+                        className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                      >
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={review.profiles?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {review.profiles?.full_name?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            {/* Clickable Name */}
+                            <button
+                              onClick={() => navigate(`/user/${review.user_id}`)}
+                              className="font-semibold hover:text-primary transition-colors"
+                            >
+                              {review.profiles?.full_name || 'Anonymous'}
+                            </button>
+                            <div className="flex gap-1 mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-4 w-4 ${
+                                    star <= review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(review.created_at).toLocaleDateString()}
+                          </p>
                         </div>
+                        {review.comment && (
+                          <p className="text-muted-foreground">{review.comment}</p>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </p>
                     </div>
-                    {review.comment && (
-                      <p className="text-muted-foreground">{review.comment}</p>
-                    )}
                   </Card>
                 ))}
               </div>

@@ -8,10 +8,15 @@ import { ProductCard } from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Search, Heart, ChevronRight, UtensilsCrossed, Pizza, Coffee, IceCream, Apple } from 'lucide-react';
+import { Search, Heart, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import categoryAll from '@/assets/category-all.jpg';
+import categoryFood from '@/assets/category-food.jpg';
+import categoryClothing from '@/assets/category-clothing.jpg';
+import categoryElectronics from '@/assets/category-electronics.jpg';
+import categoryHome from '@/assets/category-home.jpg';
 
 interface Store {
   id: string;
@@ -41,11 +46,11 @@ interface Product {
 }
 
 const CATEGORIES = [
-  { name: 'all', icon: UtensilsCrossed, label: 'All' },
-  { name: 'food', icon: Pizza, label: 'Food' },
-  { name: 'clothing', icon: Apple, label: 'Clothing' },
-  { name: 'electronics', icon: Coffee, label: 'Electronics' },
-  { name: 'home', icon: IceCream, label: 'Home & Garden' },
+  { name: 'all', image: categoryAll, label: 'All' },
+  { name: 'food', image: categoryFood, label: 'Food' },
+  { name: 'clothing', image: categoryClothing, label: 'Clothing' },
+  { name: 'electronics', image: categoryElectronics, label: 'Electronics' },
+  { name: 'home', image: categoryHome, label: 'Home & Garden' },
 ];
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -173,7 +178,6 @@ const Index = () => {
           
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
             {CATEGORIES.map((category) => {
-              const Icon = category.icon;
               return (
                 <button
                   key={category.name}
@@ -186,8 +190,12 @@ const Index = () => {
                   }}
                   className="flex-shrink-0 group"
                 >
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-secondary hover:bg-primary/10 transition-colors flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                    <Icon className="h-10 w-10 md:h-12 md:w-12 text-primary" />
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-secondary hover:bg-primary/10 transition-colors mb-2 group-hover:scale-105 transition-transform border-2 border-border">
+                    <img 
+                      src={category.image} 
+                      alt={category.label}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-sm font-medium text-center">{category.label}</p>
                 </button>

@@ -79,8 +79,8 @@ export const Sidebar = () => {
             className={cn(
               'w-10 h-10 md:w-10 md:h-10 rounded-xl flex items-center justify-center transition-all duration-300',
               isActive(item.path)
-                ? 'bg-primary text-primary-foreground shadow-lg'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:scale-105'
             )}
             title={item.label}
           >

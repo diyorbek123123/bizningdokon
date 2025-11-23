@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileHeader } from '@/components/MobileHeader';
+import { MobileNavigation } from '@/components/MobileNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -275,10 +277,11 @@ const Profile = () => {
     : user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
+      <MobileHeader />
       <Sidebar />
 
-      <div className="flex-1 ml-16">
+      <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Header Card */}
           <Card className="mb-6">
@@ -526,7 +529,8 @@ const Profile = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
+      <MobileNavigation />
     </div>
   );
 };

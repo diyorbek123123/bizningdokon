@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileHeader } from '@/components/MobileHeader';
+import { MobileNavigation } from '@/components/MobileNavigation';
 import { StoreCard } from '@/components/StoreCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -119,27 +121,30 @@ const Favorites = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background">
+        <MobileHeader />
         <Sidebar />
-        <div className="flex-1 ml-16">
+        <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
           <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-muted rounded w-1/4"></div>
             <div className="h-64 bg-muted rounded"></div>
           </div>
         </div>
-        </div>
+        </main>
+        <MobileNavigation />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
+      <MobileHeader />
       <Sidebar />
 
-      <div className="flex-1 ml-16">
+      <main className="lg:ml-16 pt-16 pb-20 lg:pb-8 lg:pt-24">
         <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Favorites</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold mb-8">My Favorites</h1>
 
         <Tabs defaultValue="stores" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
@@ -200,7 +205,8 @@ const Favorites = () => {
           </TabsContent>
         </Tabs>
         </div>
-      </div>
+      </main>
+      <MobileNavigation />
     </div>
   );
 };

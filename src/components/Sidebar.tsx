@@ -59,7 +59,7 @@ export const Sidebar = () => {
   
   if (loading) {
     return (
-      <aside className="fixed left-0 top-0 h-screen w-16 bg-card border-r border-border flex flex-col items-center py-6 z-50">
+      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-16 bg-card border-r border-border flex-col items-center py-6 z-50">
         <div className="flex-1 flex flex-col gap-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="w-10 h-10 rounded-xl" />
@@ -70,7 +70,7 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-16 md:w-16 bg-card border-r border-border flex flex-col items-center py-4 md:py-6 z-50 overflow-y-auto">
+    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-16 md:w-16 bg-card border-r border-border flex-col items-center py-4 md:py-6 z-50 overflow-y-auto">
       <div className="flex-1 flex flex-col gap-3 md:gap-4 w-full items-center">
         {navItems.map((item) => (
           <Link

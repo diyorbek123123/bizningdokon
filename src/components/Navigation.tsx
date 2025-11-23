@@ -62,7 +62,7 @@ export const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed top-0 left-16 right-0 z-40 border-b bg-card/80 backdrop-blur-xl shadow-sm">
+    <nav className="hidden lg:block fixed top-0 left-16 right-0 z-40 border-b bg-card/80 backdrop-blur-xl shadow-sm">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo Section */}
